@@ -1,1253 +1,407 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Flame,
-  ThumbsDown,
-  MessageCircle,
-  Plus,
-  Search,
-  Zap,
-  Image as ImageIcon,
-  Link as LinkIcon,
-  Upload,
-  X,
-  ArrowLeft,
-  Edit3,
-  Check,
-  Send,
-  RotateCcw,
-  Hash,
-  Calendar,
-  Award,
-  Layers
-} from 'lucide-react';
-
-// ============================================================================
-// 1. КОНСТАНТЫ И ДЕМО-ДАННЫЕ
-// ============================================================================
-
-const STORAGE_KEYS = {
-  USERS: 'ugario_brutal_users_v2',
-  POSTS: 'ugario_brutal_posts_v2'
-};
-
-const TAGS = ['#все', '#жиза', '#кринж', '#локальный_мем', '#видео'];
-
-const TAG_COLORS = {
-  '#жиза': 'bg-[#CCFF00] text-black',
-  '#кринж': 'bg-[#FF2A85] text-white',
-  '#локальный_мем': 'bg-[#3B82F6] text-white',
-  '#видео': 'bg-[#FFB800] text-black'
-};
-
-const QUICK_EMOJIS = ['😂', '💀', '🔥', '🤡'];
-
-const TICKER_ITEMS = [
-  '⚡ СЕРВЕР РАБОТАЕТ НА ЧЕСТНОМ СЛОВЕ И ЭНЕРГЕТИКАХ',
-  '🔥 ЗАЛИВАЙ СВЕЖИЙ КРИНЖ БЕЗ РЕГИСТРАЦИИ И СМС',
-  '💀 ВНИМАНИЕ: ПЕРЕДОЗИРОВКА ПОСТИРОНИЕЙ ОПАСНА ДЛЯ СНА',
-  '🤡 КТО НЕ ПОСТАВИЛ ОГОНЁК — ТОТ ДЕПЛОИТ В ПЯТНИЦУ ВЕЧЕРОМ'
-];
-
-const BANNER_PRESETS = [
-  'repeating-linear-gradient(45deg, #CCFF00 0px, #CCFF00 20px, #000000 20px, #000000 24px)',
-  'linear-gradient(135deg, #FF2A85 0%, #FFB800 100%)',
-  'radial-gradient(#000000 2px, #3B82F6 2px)',
-  'linear-gradient(90deg, #CCFF00 0%, #3B82F6 50%, #FF2A85 100%)',
-  'repeating-linear-gradient(-45deg, #FFB800 0px, #FFB800 16px, #FF2A85 16px, #FF2A85 32px)'
-];
-
-const AVATAR_PRESETS = [
-  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
-  'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=200&q=80'
-];
-
-const INITIAL_USERS = {
-  user_me: {
-    id: 'user_me',
-    nickname: 'КиберКот_2077',
-    status: 'Поставщик отборного кринжа и ночных мемов 🌙⚡',
-    avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=250&q=80',
-    banner: 'linear-gradient(135deg, #CCFF00 0%, #FFB800 100%)',
-    joinedDate: 'Сентябрь 2025'
-  },
-  user_max: {
-    id: 'user_max',
-    nickname: 'Макс_Бессонница',
-    status: 'Сплю 3 часа в сутки, остальное время скроллю ленту ☕💀',
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
-    banner: 'linear-gradient(135deg, #3B82F6 0%, #CCFF00 100%)',
-    joinedDate: 'Октябрь 2025'
-  },
-  user_alina: {
-    id: 'user_alina',
-    nickname: 'Алина_Вайб',
-    status: 'Эксперт по локальным мемам и постиронии 💅🔥',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-    banner: 'linear-gradient(135deg, #FF2A85 0%, #FFB800 100%)',
-    joinedDate: 'Ноябрь 2025'
-  },
-  user_denis: {
-    id: 'user_denis',
-    nickname: 'Дэнчик_Дебаггер',
-    status: 'У меня на локалхосте всё работало 🤷‍♂️💻',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
-    banner: 'repeating-linear-gradient(45deg, #CCFF00 0px, #CCFF00 20px, #000000 20px, #000000 24px)',
-    joinedDate: 'Январь 2026'
-  }
-};
-
-const INITIAL_POSTS = [
-  {
-    id: 'post_1',
-    authorId: 'user_max',
-    title: 'Когда открыл ноутбук в 23:55 «просто проверить почту», а на часах уже 04:17 утра...',
-    tag: '#жиза',
-    mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXp1OHB5Y2V0emR5Z2I1NXM3NnY1bHZ6eHh5b3N6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/13HgwGsXF0aiGY/giphy.gif',
-    createdAt: '24 МИН. НАЗАД',
-    likes: 42,
-    dislikes: 1,
-    userVote: null,
-    emojis: { '😂': 18, '💀': 14, '🔥': 9, '🤡': 2 },
-    userEmojis: ['💀'],
-    comments: [
-      {
-        id: 'c_101',
-        authorId: 'user_alina',
-        text: 'Буквально я вчера перед парой по матану 😭',
-        createdAt: '19 МИН. НАЗАД'
-      },
-      {
-        id: 'c_102',
-        authorId: 'user_denis',
-        text: '@Алина_Вайб классика, зато все мемы в сохраненках пересмотрены!',
-        createdAt: '12 МИН. НАЗАД'
-      }
-    ]
-  },
-  {
-    id: 'post_2',
-    authorId: 'user_denis',
-    title: 'Тимлид: «Там правка на 5 минут, зальёшь в прод до обеда?» Я в 18:45:',
-    tag: '#локальный_мем',
-    mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExN2J4eG16c3h6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/QMHoU66sBXqqLqYvGO/giphy.gif',
-    createdAt: '2 ЧАСА НАЗАД',
-    likes: 87,
-    dislikes: 0,
-    userVote: 'like',
-    emojis: { '😂': 31, '💀': 24, '🔥': 45, '🤡': 5 },
-    userEmojis: ['🔥', '😂'],
-    comments: [
-      {
-        id: 'c_201',
-        authorId: 'user_me',
-        text: 'This is fine. Главное в пятницу вечером не деплоить 😂',
-        createdAt: '1 ЧАС НАЗАД'
-      }
-    ]
-  },
-  {
-    id: 'post_3',
-    authorId: 'user_alina',
-    title: 'Мой кот смотрит на меня, когда я в третий раз за день открываю холодильник в надежде, что там появилась еда',
-    tag: '#жиза',
-    mediaUrl: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=900&q=85',
-    createdAt: '4 ЧАСА НАЗАД',
-    likes: 115,
-    dislikes: 2,
-    userVote: null,
-    emojis: { '😂': 44, '💀': 8, '🔥': 29, '🤡': 1 },
-    userEmojis: [],
-    comments: [
-      {
-        id: 'c_301',
-        authorId: 'user_max',
-        text: 'Взгляд полного осуждения и разочарования в кожаном мешке',
-        createdAt: '3 ЧАСА НАЗАД'
-      },
-      {
-        id: 'c_302',
-        authorId: 'user_alina',
-        text: '@Макс_Бессонница он просто сам ждёт, пока ему вискас насыплют 😼',
-        createdAt: '2 ЧАСА НАЗАД'
-      }
-    ]
-  },
-  {
-    id: 'post_4',
-    authorId: 'user_me',
-    title: 'Когда друг сказал «погнали на одну катку перед сном» и вы слили 5 подряд',
-    tag: '#кринж',
-    mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHR6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/3o7btPCcdNniyf0ArS/giphy.gif',
-    createdAt: '6 ЧАСОВ НАЗАД',
-    likes: 64,
-    dislikes: 3,
-    userVote: null,
-    emojis: { '😂': 22, '💀': 39, '🔥': 11, '🤡': 19 },
-    userEmojis: ['🤡'],
-    comments: [
-      {
-        id: 'c_401',
-        authorId: 'user_denis',
-        text: 'Нельзя уходить на лузстрике, это закон!',
-        createdAt: '5 ЧАСОВ НАЗАД'
-      }
-    ]
-  },
-  {
-    id: 'post_5',
-    authorId: 'user_max',
-    title: 'Реакция общего чата, когда кто-то скинул голосовое на 4 минуты без таймкодов',
-    tag: '#видео',
-    mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNXJ6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/l3q2K5jinAlChoCLS/giphy.gif',
-    createdAt: 'ВЧЕРА',
-    likes: 93,
-    dislikes: 1,
-    userVote: null,
-    emojis: { '😂': 51, '💀': 27, '🔥': 14, '🤡': 12 },
-    userEmojis: [],
-    comments: []
-  }
-];
-
-// ============================================================================
-// 2. ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
-// ============================================================================
-
-const BrutalPaperBackground = () => (
-  <div
-    className="fixed inset-0 -z-10 bg-[#F4F1EA]"
-    style={{
-      backgroundImage: 'radial-gradient(#000000 1.25px, transparent 1.25px)',
-      backgroundSize: '20px 20px',
-      backgroundPosition: '0 0'
-    }}
-  >
-    <div className="absolute inset-0 bg-[#F4F1EA]/75" />
-  </div>
-);
-
-const AcidMarqueeTicker = () => (
-  <div className="overflow-hidden border-b-2 border-black bg-[#CCFF00] py-1.5 text-black select-none">
-    <motion.div
-      animate={{ x: ['0%', '-50%'] }}
-      transition={{ duration: 22, repeat: Infinity, ease: 'linear' }}
-      className="flex w-max items-center gap-8 font-mono text-xs font-black tracking-wider uppercase"
-    >
-      {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, index) => (
-        <span key={index} className="flex items-center gap-8">
-          <span>{item}</span>
-          <span className="inline-block h-2 w-2 rotate-45 bg-black" />
-        </span>
-      ))}
-    </motion.div>
-  </div>
-);
-
-const BrutalHeader = ({
-  currentUser,
-  searchQuery,
-  setSearchQuery,
-  selectedTag,
-  setSelectedTag,
-  onOpenCreateModal,
-  onOpenProfile,
-  onGoHome,
-  activeView
-}) => {
-  return (
-    <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
-      <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            onClick={onGoHome}
-            className="group flex items-center gap-3 text-left focus:outline-none"
-          >
-            <div className="flex h-11 w-11 -rotate-3 items-center justify-center border-2 border-black bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000] transition-transform group-hover:rotate-0">
-              <Zap className="h-6 w-6 fill-[#CCFF00] text-black" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="border-2 border-black bg-[#CCFF00] px-2 py-0.5 text-lg font-black tracking-tight text-black uppercase shadow-[2px_2px_0px_0px_#000] sm:text-xl">
-                  УГАР.IO
-                </span>
-              </div>
-              <span className="mt-0.5 block font-mono text-[10px] font-bold tracking-widest text-black/70 uppercase">
-                ACID MEME ZINE // v2.0
-              </span>
-            </div>
-          </button>
-
-          <div className="order-3 w-full md:order-2 md:max-w-xs lg:max-w-sm">
-            <div className="relative flex items-center">
-              <Search className="pointer-events-none absolute left-3 h-4 w-4 text-black" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  if (activeView !== 'feed') onGoHome();
-                }}
-                placeholder="НАЙТИ МЕМ, ТЕГ ИЛИ КЕНТА..."
-                className="w-full border-2 border-black bg-[#F4F1EA] py-2 pr-8 pl-9 font-mono text-xs font-bold text-black placeholder-black/45 shadow-[3px_3px_0px_0px_#000] transition-all focus:bg-[#CCFF00]/30 focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2 border border-black bg-white p-0.5 text-black hover:bg-[#FF2A85] hover:text-white"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="order-2 flex items-center gap-2.5 md:order-3">
-            <button
-              onClick={onOpenCreateModal}
-              className="flex items-center gap-1.5 border-2 border-black bg-[#CCFF00] px-3.5 py-2 text-xs font-black tracking-tight text-black uppercase shadow-[4px_4px_0px_0px_#000] transition-all hover:bg-[#FFB800] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none sm:px-4 sm:text-sm"
-            >
-              <Plus className="h-4 w-4 stroke-[3]" />
-              <span>КИНУТЬ МЕМ</span>
-            </button>
-
-            <button
-              onClick={() => onOpenProfile(currentUser.id)}
-              className="flex items-center gap-2 border-2 border-black bg-white p-1 pr-2.5 shadow-[4px_4px_0px_0px_#000] transition-all hover:bg-[#3B82F6] hover:text-white active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-            >
-              <img
-                src={currentUser.avatar}
-                alt={currentUser.nickname}
-                className="h-8 w-8 border-2 border-black object-cover"
-              />
-              <span className="hidden max-w-[110px] truncate font-mono text-xs font-black uppercase sm:inline">
-                {currentUser.nickname}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {activeView === 'feed' && (
-          <div className="mt-3 flex items-center gap-2 overflow-x-auto pt-1 pb-1 no-scrollbar">
-            {TAGS.map((tag) => {
-              const isActive = selectedTag === tag;
-              return (
-                <button
-                  key={tag}
-                  onClick={() => setSelectedTag(tag)}
-                  className={`shrink-0 border-2 border-black px-3 py-1 font-mono text-xs font-black uppercase transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
-                    isActive
-                      ? 'bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]'
-                      : 'bg-[#F4F1EA] text-black shadow-[2px_2px_0px_0px_#000] hover:bg-[#CCFF00]'
-                  }`}
-                >
-                  {tag}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      <AcidMarqueeTicker />
-    </header>
-  );
-};
-
-// ============================================================================
-// 3. МОДАЛКА СОЗДАНИЯ МЕМА
-// ============================================================================
-
-const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
-  const [title, setTitle] = useState('');
-  const [tag, setTag] = useState('#жиза');
-  const [inputMode, setInputMode] = useState('file');
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [error, setError] = useState('');
-  const fileInputRef = useRef(null);
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setError('НУЖНА КАРТИНКА ИЛИ GIF-ФАЙЛ!');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setMediaUrl(reader.result);
-      setError('');
-    };
-    reader.onerror = () => {
-      setError('ОШИБКА ЧТЕНИЯ ФАЙЛА.');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      setError('НАПИШИ СМЕШНУЮ ПОДПИСЬ К МЕМУ!');
-      return;
-    }
-    if (!mediaUrl.trim()) {
-      setError('ЗАГРУЗИ КАРТИНКУ ИЛИ ВСТАВЬ ССЫЛКУ!');
-      return;
-    }
-
-    onPublish({
-      title: title.trim(),
-      tag,
-      mediaUrl: mediaUrl.trim()
-    });
-
-    setTitle('');
-    setTag('#жиза');
-    setMediaUrl('');
-    setError('');
-    onClose();
-  };
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/75"
-          />
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: 16 }}
-            className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto border-4 border-black bg-white p-5 shadow-[8px_8px_0px_0px_#000] sm:p-6"
-          >
-            <div className="flex items-center justify-between border-b-2 border-black pb-3.5">
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-9 w-9 items-center justify-center border-2 border-black bg-[#CCFF00] text-black shadow-[2px_2px_0px_0px_#000]">
-                  <Zap className="h-5 w-5 fill-black" />
-                </div>
-                <h2 className="text-xl font-black tracking-tight text-black uppercase">
-                  ЗАКИНУТЬ НОВЫЙ МЕМ
-                </h2>
-              </div>
-              <button
-                onClick={onClose}
-                className="border-2 border-black bg-[#FF2A85] p-1.5 text-white shadow-[2px_2px_0px_0px_#000]"
-              >
-                <X className="h-5 w-5 stroke-[3]" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              <div>
-                <label className="mb-1.5 block font-mono text-xs font-black tracking-wider text-black uppercase">
-                  1. ПОДПИСЬ К МЕМУ
-                </label>
-                <textarea
-                  rows={2}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Например: Когда зашёл в свой код спустя полгода..."
-                  className="w-full resize-none border-2 border-black bg-[#F4F1EA] p-3 text-sm font-bold text-black placeholder-black/40 shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block font-mono text-xs font-black tracking-wider text-black uppercase">
-                  2. ВЫБЕРИ КАТЕГОРИЮ
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {TAGS.filter((t) => t !== '#все').map((t) => (
-                    <button
-                      type="button"
-                      key={t}
-                      onClick={() => setTag(t)}
-                      className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase transition-all ${
-                        tag === t
-                          ? `${TAG_COLORS[t]} shadow-[3px_3px_0px_0px_#000]`
-                          : 'bg-[#F4F1EA] text-black hover:bg-white'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="font-mono text-xs font-black tracking-wider text-black uppercase">
-                    3. КАРТИНКА ИЛИ GIF
-                  </label>
-                  <div className="flex border-2 border-black bg-[#F4F1EA]">
-                    <button
-                      type="button"
-                      onClick={() => setInputMode('file')}
-                      className={`flex items-center gap-1 px-2.5 py-1 font-mono text-xs font-black uppercase ${
-                        inputMode === 'file' ? 'bg-black text-[#CCFF00]' : 'text-black'
-                      }`}
-                    >
-                      <Upload className="h-3.5 w-3.5" /> Файл
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setInputMode('url')}
-                      className={`flex items-center gap-1 border-l-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase ${
-                        inputMode === 'url' ? 'bg-black text-[#CCFF00]' : 'text-black'
-                      }`}
-                    >
-                      <LinkIcon className="h-3.5 w-3.5" /> Ссылка
-                    </button>
-                  </div>
-                </div>
-
-                {inputMode === 'file' ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-black bg-[#F4F1EA] px-4 py-6 text-center hover:bg-[#CCFF00]/40"
-                  >
-                    <ImageIcon className="mb-2 h-8 w-8 text-black" />
-                    <p className="text-sm font-black text-black uppercase">КЛИКНИ, ЧТОБЫ ВЫБРАТЬ ФАЙЛ</p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                  </div>
-                ) : (
-                  <input
-                    type="url"
-                    value={mediaUrl}
-                    onChange={(e) => setMediaUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full border-2 border-black bg-[#F4F1EA] px-3.5 py-2.5 font-mono text-xs font-bold text-black shadow-[3px_3px_0px_0px_#000] focus:outline-none"
-                  />
-                )}
-              </div>
-
-              {mediaUrl && (
-                <div className="relative border-2 border-black bg-black">
-                  <img src={mediaUrl} alt="Preview" className="max-h-64 w-full object-contain" />
-                  <button
-                    type="button"
-                    onClick={() => setMediaUrl('')}
-                    className="absolute top-2 right-2 border-2 border-black bg-[#FF2A85] p-1 text-white"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-
-              {error && (
-                <div className="border-2 border-black bg-[#FF2A85] px-3 py-2 font-mono text-xs font-black text-white shadow-[3px_3px_0px_0px_#000]">
-                  ⚠️ {error}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 border-t-2 border-black pt-4">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"
-                >
-                  ОТМЕНА
-                </button>
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000]"
-                >
-                  <Zap className="h-4 w-4 fill-black" /> ОПУБЛИКОВАТЬ
-                </button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-  );
-};
-
-// ============================================================================
-// 4. КАРТОЧКА МЕМА
-// ============================================================================
-
-const MemeCard = ({
-  post,
-  author,
-  users,
-  onOpenProfile,
-  onVote,
-  onToggleEmoji,
-  onAddComment
-}) => {
-  const [showComments, setShowComments] = useState(post.comments.length > 0);
-  const [commentText, setCommentText] = useState('');
-  const commentInputRef = useRef(null);
-
-  const handleReplyClick = (nickname) => {
-    setShowComments(true);
-    setCommentText(`@${nickname} `);
-    setTimeout(() => commentInputRef.current?.focus(), 50);
-  };
-
-  const handleCommentSubmit = (e) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    onAddComment(post.id, commentText.trim());
-    setCommentText('');
-    setShowComments(true);
-  };
-
-  const tagBadgeStyle = TAG_COLORS[post.tag] || 'bg-[#CCFF00] text-black';
-
-  return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.97 }}
-      className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000]"
-    >
-      <div className="flex items-center justify-between gap-3 border-b-2 border-black bg-[#F4F1EA] px-4 py-3 sm:px-5">
-        <button
-          onClick={() => onOpenProfile(author.id)}
-          className="group flex items-center gap-3 text-left focus:outline-none"
-        >
-          <img
-            src={author.avatar}
-            alt={author.nickname}
-            className="h-11 w-11 border-2 border-black object-cover shadow-[2px_2px_0px_0px_#000]"
-          />
-          <div>
-            <span className="block font-black text-black uppercase group-hover:underline">
-              {author.nickname}
-            </span>
-            <span className="font-mono text-[11px] font-bold text-black/60">{post.createdAt}</span>
-          </div>
-        </button>
-        <span className={`rotate-2 border-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] ${tagBadgeStyle}`}>
-          {post.tag}
-        </span>
-      </div>
-
-      <div className="px-4 pt-4 pb-3 sm:px-5">
-        <p className="text-base leading-snug font-black text-black sm:text-lg">{post.title}</p>
-      </div>
-
-      <div className="px-4 sm:px-5">
-        <div className="flex items-center justify-center overflow-hidden border-2 border-black bg-black">
-          <img src={post.mediaUrl} alt={post.title} loading="lazy" className="max-h-[520px] w-full object-contain" />
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-4 sm:px-5">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onVote(post.id, 'like')}
-            className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${
-              post.userVote === 'like' ? 'bg-[#FFB800] text-black' : 'bg-white text-black hover:bg-[#CCFF00]'
-            }`}
-          >
-            <Flame className={`h-4 w-4 ${post.userVote === 'like' ? 'fill-black' : ''}`} />
-            <span>{post.likes}</span>
-          </button>
-
-          <button
-            onClick={() => onVote(post.id, 'dislike')}
-            className={`flex items-center gap-1.5 border-2 border-black px-2.5 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${
-              post.userVote === 'dislike' ? 'bg-[#3B82F6] text-white' : 'bg-white text-black hover:bg-[#F4F1EA]'
-            }`}
-          >
-            <ThumbsDown className="h-3.5 w-3.5" />
-            {post.dislikes > 0 && <span>{post.dislikes}</span>}
-          </button>
-
-          <button
-            onClick={() => setShowComments((prev) => !prev)}
-            className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${
-              showComments ? 'bg-black text-[#CCFF00]' : 'bg-white text-black hover:bg-[#F4F1EA]'
-            }`}
-          >
-            <MessageCircle className="h-4 w-4" />
-            <span>{post.comments.length}</span>
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {QUICK_EMOJIS.map((emoji) => {
-            const count = post.emojis?.[emoji] || 0;
-            const isReacted = post.userEmojis?.includes(emoji);
-            return (
-              <button
-                key={emoji}
-                onClick={() => onToggleEmoji(post.id, emoji)}
-                className={`flex items-center gap-1 border-2 border-black px-2 py-1 font-mono text-xs font-black shadow-[2px_2px_0px_0px_#000] ${
-                  isReacted ? 'bg-[#FF2A85] text-white' : 'bg-[#F4F1EA] text-black hover:bg-[#CCFF00]'
-                }`}
-              >
-                <span className="text-sm">{emoji}</span>
-                {count > 0 && <span>{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <AnimatePresence initial={false}>
-        {showComments && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t-2 border-black bg-[#F4F1EA]"
-          >
-            <div className="space-y-3 p-4 sm:px-5">
-              {post.comments.length === 0 ? (
-                <p className="border-2 border-dashed border-black/30 bg-white py-2.5 text-center font-mono text-xs font-bold text-black/60 uppercase">
-                  КОММЕНТОВ НЕТ — НАПИШИ ПЕРВЫМ!
-                </p>
-              ) : (
-                <div className="space-y-2.5">
-                  {post.comments.map((comment) => {
-                    const commentAuthor = users[comment.authorId] || {
-                      id: comment.authorId,
-                      nickname: 'Аноним',
-                      avatar: AVATAR_PRESETS[0]
-                    };
-                    return (
-                      <div
-                        key={comment.id}
-                        className="flex items-start gap-2.5 border-2 border-black bg-white p-2.5 shadow-[3px_3px_0px_0px_#000]"
-                      >
-                        <button onClick={() => onOpenProfile(commentAuthor.id)}>
-                          <img
-                            src={commentAuthor.avatar}
-                            alt={commentAuthor.nickname}
-                            className="h-8 w-8 border-2 border-black object-cover"
-                          />
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline justify-between gap-2">
-                            <button
-                              onClick={() => onOpenProfile(commentAuthor.id)}
-                              className="font-black text-xs uppercase hover:underline truncate"
-                            >
-                              {commentAuthor.nickname}
-                            </button>
-                            <span className="font-mono text-[10px] text-black/50 shrink-0">
-                              {comment.createdAt}
-                            </span>
-                          </div>
-                          <p className="mt-0.5 text-xs font-bold text-black break-words">
-                            {comment.text}
-                          </p>
-                          <button
-                            onClick={() => handleReplyClick(commentAuthor.nickname)}
-                            className="mt-1 font-mono text-[10px] font-black uppercase text-[#3B82F6] hover:underline"
-                          >
-                            [ответить]
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              <form onSubmit={handleCommentSubmit} className="flex gap-2 pt-1">
-                <input
-                  ref={commentInputRef}
-                  type="text"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="НАПИСАТЬ КОММЕНТ..."
-                  className="flex-1 border-2 border-black bg-white px-3 py-2 font-mono text-xs font-bold text-black placeholder-black/40 shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
-                />
-                <button
-                  type="submit"
-                  className="flex items-center justify-center border-2 border-black bg-[#CCFF00] px-3.5 py-2 font-mono text-xs font-black text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFB800]"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
-              </form>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.article>
-  );
-};
-
-// ============================================================================
-// 5. ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
-// ============================================================================
-
-const ProfileView = ({
-  profileUser,
-  currentUser,
-  posts,
-  users,
-  onBack,
-  onUpdateProfile,
-  onOpenProfile,
-  onVote,
-  onToggleEmoji,
-  onAddComment
-}) => {
-  const isMe = profileUser.id === currentUser.id;
-  const [isEditing, setIsEditing] = useState(false);
-  const [nickname, setNickname] = useState(profileUser.nickname);
-  const [status, setStatus] = useState(profileUser.status);
-  const [avatar, setAvatar] = useState(profileUser.avatar);
-  const [banner, setBanner] = useState(profileUser.banner);
-
-  useEffect(() => {
-    setNickname(profileUser.nickname);
-    setStatus(profileUser.status);
-    setAvatar(profileUser.avatar);
-    setBanner(profileUser.banner);
-    setIsEditing(false);
-  }, [profileUser]);
-
-  const userPosts = useMemo(() => {
-    return posts.filter((p) => p.authorId === profileUser.id);
-  }, [posts, profileUser.id]);
-
-  const totalLikes = useMemo(() => {
-    return userPosts.reduce((acc, p) => acc + p.likes, 0);
-  }, [userPosts]);
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    if (!nickname.trim()) return;
-    onUpdateProfile({
-      ...profileUser,
-      nickname: nickname.trim(),
-      status: status.trim(),
-      avatar,
-      banner
-    });
-    setIsEditing(false);
-  };
-
-  return (
-    <div className="mx-auto max-w-2xl px-3 py-4 sm:px-6">
-      <button
-        onClick={onBack}
-        className="mb-4 flex items-center gap-2 border-2 border-black bg-white px-3.5 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000] hover:bg-[#CCFF00]"
-      >
-        <ArrowLeft className="h-4 w-4" /> К ЛЕНТЕ МЕМОВ
-      </button>
-
-      {/* Карточка профиля */}
-      <div className="overflow-hidden border-4 border-black bg-white shadow-[8px_8px_0px_0px_#000]">
-        <div
-          className="h-32 w-full border-b-4 border-black sm:h-44"
-          style={{ background: banner }}
-        />
-
-        <div className="relative px-5 pb-5 pt-0">
-          <div className="flex flex-wrap items-end justify-between gap-4 -mt-12 mb-4">
-            <img
-              src={avatar}
-              alt={profileUser.nickname}
-              className="h-24 w-24 border-4 border-black object-cover bg-white shadow-[4px_4px_0px_0px_#000] sm:h-28 sm:w-28"
-            />
-            {isMe && !isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1.5 border-2 border-black bg-[#CCFF00] px-4 py-2 font-mono text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800]"
-              >
-                <Edit3 className="h-4 w-4" /> РЕДАКТИРОВАТЬ ПРОФИЛЬ
-              </button>
-            )}
-          </div>
-
-          {!isEditing ? (
-            <div>
-              <h1 className="text-2xl font-black uppercase tracking-tight text-black sm:text-3xl">
-                {profileUser.nickname}
-              </h1>
-              <p className="mt-1 font-mono text-xs font-bold text-black/70 flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5" /> В тусовке с {profileUser.joinedDate}
-              </p>
-              <div className="mt-3 border-2 border-black bg-[#F4F1EA] p-3 text-sm font-bold text-black shadow-[3px_3px_0px_0px_#000]">
-                {profileUser.status}
-              </div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]">
-                  <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-black/60 uppercase">
-                    <Layers className="h-4 w-4 text-[#3B82F6]" /> Всего мемов
-                  </div>
-                  <div className="mt-1 text-2xl font-black">{userPosts.length}</div>
-                </div>
-                <div className="border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]">
-                  <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-black/60 uppercase">
-                    <Award className="h-4 w-4 text-[#FF2A85]" /> Суммарный огонь
-                  </div>
-                  <div className="mt-1 text-2xl font-black">{totalLikes}</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSave} className="space-y-4 pt-2">
-              <h2 className="font-mono text-sm font-black uppercase text-black">
-                🛠 НАСТРОЙКА ПРОФИЛЯ
-              </h2>
-
-              <div>
-                <label className="block font-mono text-xs font-bold uppercase mb-1">Никнейм</label>
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono text-xs font-bold uppercase mb-1">Статус</label>
-                <input
-                  type="text"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono text-xs font-bold uppercase mb-1">Выбери аватар</label>
-                <div className="flex flex-wrap gap-2">
-                  {AVATAR_PRESETS.map((url, i) => (
-                    <img
-                      key={i}
-                      src={url}
-                      alt="preset"
-                      onClick={() => setAvatar(url)}
-                      className={`h-12 w-12 cursor-pointer border-2 border-black object-cover ${
-                        avatar === url ? 'ring-4 ring-[#FF2A85]' : ''
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-mono text-xs font-bold uppercase mb-1">Выбери баннер</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {BANNER_PRESETS.map((b, i) => (
-                    <div
-                      key={i}
-                      onClick={() => setBanner(b)}
-                      className={`h-12 cursor-pointer border-2 border-black ${
-                        banner === b ? 'ring-4 ring-[#CCFF00]' : ''
-                      }`}
-                      style={{ background: b }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"
-                >
-                  ОТМЕНА
-                </button>
-                <button
-                  type="submit"
-                  className="border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000]"
-                >
-                  СОХРАНИТЬ
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-
-      {/* Лента мемов этого пользователя внизу профиля */}
-      <div className="mt-8">
-        <h3 className="mb-4 border-l-4 border-[#FF2A85] pl-3 font-mono text-lg font-black uppercase text-black">
-          МЕМЫ ОТ {profileUser.nickname} ({userPosts.length})
-        </h3>
-        {userPosts.length === 0 ? (
-          <div className="border-2 border-dashed border-black bg-white p-8 text-center font-mono text-xs font-bold text-black/60 uppercase">
-            У ЭТОГО КЕНТА ЕЩЁ НЕТ МЕМОВ
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {userPosts.map((post) => (
-              <MemeCard
-                key={post.id}
-                post={post}
-                author={profileUser}
-                users={users}
-                onOpenProfile={onOpenProfile}
-                onVote={onVote}
-                onToggleEmoji={onToggleEmoji}
-                onAddComment={onAddComment}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// ============================================================================
-// 6. ГЛАВНОЕ ПРИЛОЖЕНИЕ (APP)
-// ============================================================================
-
-export default function App() {
-  const [users, setUsers] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.USERS);
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
-  });
-
-  const [posts, setPosts] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.POSTS);
-    return saved ? JSON.parse(saved) : INITIAL_POSTS;
-  });
-
-  const [currentUserId, setCurrentUserId] = useState('user_me');
-  const [activeView, setActiveView] = useState('feed'); // 'feed' | 'profile'
-  const [profileTargetId, setProfileTargetId] = useState(null);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTag, setSelectedTag] = useState('#все');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-  }, [users]);
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
-  }, [posts]);
-
-  const currentUser = users[currentUserId] || users['user_me'];
-
-  const handlePublishMeme = (newPostData) => {
-    const newPost = {
-      id: 'post_' + Date.now(),
-      authorId: currentUser.id,
-      title: newPostData.title,
-      tag: newPostData.tag,
-      mediaUrl: newPostData.mediaUrl,
-      createdAt: 'ТОЛЬКО ЧТО',
-      likes: 1,
-      dislikes: 0,
-      userVote: 'like',
-      emojis: { '🔥': 1 },
-      userEmojis: ['🔥'],
-      comments: []
-    };
-    setPosts([newPost, ...posts]);
-    setActiveView('feed');
-  };
-
-  const handleVote = (postId, type) => {
-    setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id !== postId) return post;
-        let likes = post.likes;
-        let dislikes = post.dislikes;
-        let userVote = post.userVote;
-
-        if (userVote === type) {
-          if (type === 'like') likes--;
-          if (type === 'dislike') dislikes--;
-          userVote = null;
-        } else {
-          if (userVote === 'like') likes--;
-          if (userVote === 'dislike') dislikes--;
-
-          if (type === 'like') {
-            likes++;
-            userVote = 'like';
-          }
-          if (type === 'dislike') {
-            dislikes++;
-            userVote = 'dislike';
-          }
-        }
-        return { ...post, likes, dislikes, userVote };
-      })
-    );
-  };
-
-  const handleToggleEmoji = (postId, emoji) => {
-    setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id !== postId) return post;
-        const emojis = { ...(post.emojis || {}) };
-        const userEmojis = [...(post.userEmojis || [])];
-        const hasReacted = userEmojis.includes(emoji);
-
-        if (hasReacted) {
-          userEmojis.splice(userEmojis.indexOf(emoji), 1);
-          emojis[emoji] = Math.max(0, (emojis[emoji] || 1) - 1);
-        } else {
-          userEmojis.push(emoji);
-          emojis[emoji] = (emojis[emoji] || 0) + 1;
-        }
-        return { ...post, emojis, userEmojis };
-      })
-    );
-  };
-
-  const handleAddComment = (postId, text) => {
-    setPosts((prev) =>
-      prev.map((post) => {
-        if (post.id !== postId) return post;
-        const newComment = {
-          id: 'c_' + Date.now(),
-          authorId: currentUser.id,
-          text,
-          createdAt: 'ТОЛЬКО ЧТО'
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>УГАР.IO — Acid Meme Zine</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel для обработки JSX в браузере -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Inter:wght@700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-[#F4F1EA] text-black">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+        const { motion, AnimatePresence } = window.Motion;
+        const {
+            Flame, ThumbsDown, MessageCircle, Plus, Search, Zap,
+            Image: ImageIcon, Link: LinkIcon, Upload, X, ArrowLeft,
+            Edit3, Send, Calendar, Award, Layers
+        } = window.LucideReact;
+
+        const STORAGE_KEYS = {
+            USERS: 'ugario_brutal_users_v2',
+            POSTS: 'ugario_brutal_posts_v2'
         };
-        return { ...post, comments: [...post.comments, newComment] };
-      })
-    );
-  };
 
-  const handleUpdateProfile = (updatedUser) => {
-    setUsers((prev) => ({
-      ...prev,
-      [updatedUser.id]: updatedUser
-    }));
-  };
+        const TAGS = ['#все', '#жиза', '#кринж', '#локальный_мем', '#видео'];
 
-  const filteredPosts = useMemo(() => {
-    return posts.filter((post) => {
-      const author = users[post.authorId];
-      const matchesSearch =
-        searchQuery.trim() === '' ||
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (author && author.nickname.toLowerCase().includes(searchQuery.toLowerCase()));
+        const TAG_COLORS = {
+            '#жиза': 'bg-[#CCFF00] text-black',
+            '#кринж': 'bg-[#FF2A85] text-white',
+            '#локальный_мем': 'bg-[#3B82F6] text-white',
+            '#видео': 'bg-[#FFB800] text-black'
+        };
 
-      const matchesTag = selectedTag === '#все' || post.tag === selectedTag;
+        const QUICK_EMOJIS = ['😂', '💀', '🔥', '🤡'];
 
-      return matchesSearch && matchesTag;
-    });
-  }, [posts, users, searchQuery, selectedTag]);
+        const TICKER_ITEMS = [
+            '⚡ СЕРВЕР РАБОТАЕТ НА ЧЕСТНОМ СЛОВЕ И ЭНЕРГЕТИКАХ',
+            '🔥 ЗАЛИВАЙ СВЕЖИЙ КРИНЖ БЕЗ РЕГИСТРАЦИИ И СМС',
+            '💀 ВНИМАНИЕ: ПЕРЕДОЗИРОВКА ПОСТИРОНИЕЙ ОПАСНА ДЛЯ СНА',
+            '🤡 КТО НЕ ПОСТАВИЛ ОГОНЁК — ТОТ ДЕПЛОИТ В ПЯТНИЦУ ВЕЧЕРОМ'
+        ];
 
-  return (
-    <div className="min-h-screen text-black selection:bg-[#CCFF00] selection:text-black font-sans pb-12">
-      <BrutalPaperBackground />
+        const BANNER_PRESETS = [
+            'repeating-linear-gradient(45deg, #CCFF00 0px, #CCFF00 20px, #000000 20px, #000000 24px)',
+            'linear-gradient(135deg, #FF2A85 0%, #FFB800 100%)',
+            'radial-gradient(#000000 2px, #3B82F6 2px)',
+            'linear-gradient(90deg, #CCFF00 0%, #3B82F6 50%, #FF2A85 100%)',
+            'repeating-linear-gradient(-45deg, #FFB800 0px, #FFB800 16px, #FF2A85 16px, #FF2A85 32px)'
+        ];
 
-      <BrutalHeader
-        currentUser={currentUser}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        selectedTag={selectedTag}
-        setSelectedTag={setSelectedTag}
-        onOpenCreateModal={() => setIsCreateModalOpen(true)}
-        onOpenProfile={(userId) => {
-          setProfileTargetId(userId);
-          setActiveView('profile');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onGoHome={() => {
-          setActiveView('feed');
-          setSearchQuery('');
-          setSelectedTag('#все');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        activeView={activeView}
-      />
+        const AVATAR_PRESETS = [
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+            'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+            'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80',
+            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
+            'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=200&q=80'
+        ];
 
-      <main className="mx-auto max-w-2xl px-3 py-6 sm:px-6">
-        {activeView === 'feed' ? (
-          <div>
-            {filteredPosts.length === 0 ? (
-              <div className="border-4 border-black bg-white p-10 text-center shadow-[6px_6px_0px_0px_#000]">
-                <p className="font-mono text-sm font-black uppercase text-black">
-                  НИЧЕГО НЕ НАШЛИ ПО ТВОЕМУ ЗАПРОСУ 🕵️‍♂️
-                </p>
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedTag('#все');
-                  }}
-                  className="mt-4 border-2 border-black bg-[#CCFF00] px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"
-                >
-                  СБРОСИТЬ ФИЛЬТРЫ
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {filteredPosts.map((post) => {
-                  const author = users[post.authorId] || {
-                    id: post.authorId,
-                    nickname: 'Аноним',
-                    avatar: AVATAR_PRESETS[0]
-                  };
-                  return (
-                    <MemeCard
-                      key={post.id}
-                      post={post}
-                      author={author}
-                      users={users}
-                      onOpenProfile={(userId) => {
-                        setProfileTargetId(userId);
-                        setActiveView('profile');
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      onVote={handleVote}
-                      onToggleEmoji={handleToggleEmoji}
-                      onAddComment={handleAddComment}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ) : (
-          <ProfileView
-            profileUser={users[profileTargetId] || currentUser}
-            currentUser={currentUser}
-            posts={posts}
-            users={users}
-            onBack={() => {
-              setActiveView('feed');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onUpdateProfile={handleUpdateProfile}
-            onOpenProfile={(userId) => {
-              setProfileTargetId(userId);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            onVote={handleVote}
-            onToggleEmoji={handleToggleEmoji}
-            onAddComment={handleAddComment}
-          />
-        )}
-      </main>
+        const INITIAL_USERS = {
+            user_me: {
+                id: 'user_me',
+                nickname: 'КиберКот_2077',
+                status: 'Поставщик отборного кринжа и ночных мемов 🌙⚡',
+                avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=250&q=80',
+                banner: 'linear-gradient(135deg, #CCFF00 0%, #FFB800 100%)',
+                joinedDate: 'Сентябрь 2025'
+            },
+            user_max: {
+                id: 'user_max',
+                nickname: 'Макс_Бессонница',
+                status: 'Сплю 3 часа в сутки, остальное время скроллю ленту ☕💀',
+                avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
+                banner: 'linear-gradient(135deg, #3B82F6 0%, #CCFF00 100%)',
+                joinedDate: 'Октябрь 2025'
+            },
+            user_alina: {
+                id: 'user_alina',
+                nickname: 'Алина_Вайб',
+                status: 'Эксперт по локальным мемам и постиронии 💅🔥',
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+                banner: 'linear-gradient(135deg, #FF2A85 0%, #FFB800 100%)',
+                joinedDate: 'Ноябрь 2025'
+            },
+            user_denis: {
+                id: 'user_denis',
+                nickname: 'Дэнчик_Дебаггер',
+                status: 'У меня на локалхосте всё работало 🤷‍♂️💻',
+                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
+                banner: 'repeating-linear-gradient(45deg, #CCFF00 0px, #CCFF00 20px, #000000 20px, #000000 24px)',
+                joinedDate: 'Январь 2026'
+            }
+        };
 
-      <CreateMemeModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onPublish={handlePublishMeme}
-      />
-    </div>
-  );
-}
+        const INITIAL_POSTS = [
+            {
+                id: 'post_1',
+                authorId: 'user_max',
+                title: 'Когда открыл ноутбук в 23:55 «просто проверить почту», а на часах уже 04:17 утра...',
+                tag: '#жиза',
+                mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXp1OHB5Y2V0emR5Z2I1NXM3NnY1bHZ6eHh5b3N6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/13HgwGsXF0aiGY/giphy.gif',
+                createdAt: '24 МИН. НАЗАД',
+                likes: 42,
+                dislikes: 1,
+                userVote: null,
+                emojis: { '😂': 18, '💀': 14, '🔥': 9, '🤡': 2 },
+                userEmojis: ['💀'],
+                comments: [
+                    { id: 'c_101', authorId: 'user_alina', text: 'Буквально я вчера перед парой по матану 😭', createdAt: '19 МИН. НАЗАД' },
+                    { id: 'c_102', authorId: 'user_denis', text: '@Алина_Вайб классика, зато все мемы в сохраненках пересмотрены!', createdAt: '12 МИН. НАЗАД' }
+                ]
+            },
+            {
+                id: 'post_2',
+                authorId: 'user_denis',
+                title: 'Тимлид: «Там правка на 5 минут, зальёшь в прод до обеда?» Я в 18:45:',
+                tag: '#локальный_мем',
+                mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExN2J4eG16c3h6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/QMHoU66sBXqqLqYvGO/giphy.gif',
+                createdAt: '2 ЧАСА НАЗАД',
+                likes: 87,
+                dislikes: 0,
+                userVote: 'like',
+                emojis: { '😂': 31, '💀': 24, '🔥': 45, '🤡': 5 },
+                userEmojis: ['🔥', '😂'],
+                comments: [
+                    { id: 'c_201', authorId: 'user_me', text: 'This is fine. Главное в пятницу вечером не деплоить 😂', createdAt: '1 ЧАС НАЗАД' }
+                ]
+            }
+        ];
+
+        function BrutalPaperBackground() {
+            return (
+                <div className="fixed inset-0 -z-10 bg-[#F4F1EA]" style={{
+                    backgroundImage: 'radial-gradient(#000000 1.25px, transparent 1.25px)',
+                    backgroundSize: '20px 20px'
+                }}>
+                    <div className="absolute inset-0 bg-[#F4F1EA]/75" />
+                </div>
+            );
+        }
+
+        function AcidMarqueeTicker() {
+            return (
+                <div className="overflow-hidden border-b-2 border-black bg-[#CCFF00] py-1.5 text-black select-none">
+                    <motion.div animate={{ x: ['0%', '-50%'] }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }} className="flex w-max items-center gap-8 font-mono text-xs font-black tracking-wider uppercase">
+                        {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, index) => (
+                            <span key={index} className="flex items-center gap-8">
+                                <span>{item}</span>
+                                <span className="inline-block h-2 w-2 rotate-45 bg-black" />
+                            </span>
+                        ))}
+                    </motion.div>
+                </div>
+            );
+        }
+
+        function BrutalHeader({ currentUser, searchQuery, setSearchQuery, selectedTag, setSelectedTag, onOpenCreateModal, onOpenProfile, onGoHome, activeView }) {
+            return (
+                <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
+                    <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <button onClick={onGoHome} className="group flex items-center gap-3 text-left focus:outline-none">
+                                <div className="flex h-11 w-11 -rotate-3 items-center justify-center border-2 border-black bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]">
+                                    <Zap className="h-6 w-6 fill-[#CCFF00] text-black" />
+                                </div>
+                                <div>
+                                    <span className="border-2 border-black bg-[#CCFF00] px-2 py-0.5 text-lg font-black tracking-tight text-black uppercase shadow-[2px_2px_0px_0px_#000] sm:text-xl">УГАР.IO</span>
+                                    <span className="mt-0.5 block font-mono text-[10px] font-bold tracking-widest text-black/70 uppercase">ACID MEME ZINE</span>
+                                </div>
+                            </button>
+
+                            <div className="order-3 w-full md:order-2 md:max-w-xs lg:max-w-sm">
+                                <div className="relative flex items-center">
+                                    <Search className="pointer-events-none absolute left-3 h-4 w-4 text-black" />
+                                    <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); if (activeView !== 'feed') onGoHome(); }} placeholder="НАЙТИ МЕМ ИЛИ КЕНТА..." className="w-full border-2 border-black bg-[#F4F1EA] py-2 pr-8 pl-9 font-mono text-xs font-bold text-black placeholder-black/45 shadow-[3px_3px_0px_0px_#000] focus:outline-none" />
+                                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2 border border-black bg-white p-0.5"><X className="h-3.5 w-3.5" /></button>}
+                                </div>
+                            </div>
+
+                            <div className="order-2 flex items-center gap-2.5 md:order-3">
+                                <button onClick={onOpenCreateModal} className="flex items-center gap-1.5 border-2 border-black bg-[#CCFF00] px-3.5 py-2 text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800]">
+                                    <Plus className="h-4 w-4 stroke-[3]" /> <span>КИНУТЬ МЕМ</span>
+                                </button>
+                                <button onClick={() => onOpenProfile(currentUser.id)} className="flex items-center gap-2 border-2 border-black bg-white p-1 pr-2.5 shadow-[4px_4px_0px_0px_#000]">
+                                    <img src={currentUser.avatar} alt={currentUser.nickname} className="h-8 w-8 border-2 border-black object-cover" />
+                                    <span className="hidden max-w-[110px] truncate font-mono text-xs font-black uppercase sm:inline">{currentUser.nickname}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {activeView === 'feed' && (
+                            <div className="mt-3 flex items-center gap-2 overflow-x-auto pt-1 pb-1 no-scrollbar">
+                                {TAGS.map((tag) => (
+                                    <button key={tag} onClick={() => setSelectedTag(tag)} className={`shrink-0 border-2 border-black px-3 py-1 font-mono text-xs font-black uppercase ${selectedTag === tag ? 'bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]' : 'bg-[#F4F1EA] text-black shadow-[2px_2px_0px_0px_#000]'}`}>
+                                        {tag}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <AcidMarqueeTicker />
+                </header>
+            );
+        }
+
+        function CreateMemeModal({ isOpen, onClose, onPublish }) {
+            const [title, setTitle] = useState('');
+            const [tag, setTag] = useState('#жиза');
+            const [mediaUrl, setMediaUrl] = useState('');
+            const [error, setError] = useState('');
+            const fileInputRef = useRef(null);
+
+            if (!isOpen) return null;
+
+            const handleFileUpload = (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => { setMediaUrl(reader.result); setError(''); };
+                reader.readAsDataURL(file);
+            };
+
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div onClick={onClose} className="fixed inset-0 bg-black/75" />
+                    <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto border-4 border-black bg-white p-5 shadow-[8px_8px_0px_0px_#000]">
+                        <div className="flex items-center justify-between border-b-2 border-black pb-3.5">
+                            <h2 className="text-xl font-black uppercase">ЗАКИНУТЬ НОВЫЙ МЕМ</h2>
+                            <button onClick={onClose} className="border-2 border-black bg-[#FF2A85] p-1.5 text-white"><X className="h-5 w-5" /></button>
+                        </div>
+                        <form onSubmit={(e) => { e.preventDefault(); if(!title || !mediaUrl) { setError('Заполни текст и картинку!'); return; } onPublish({ title, tag, mediaUrl }); setTitle(''); setMediaUrl(''); onClose(); }} className="mt-4 space-y-4">
+                            <div>
+                                <label className="block font-mono text-xs font-black uppercase mb-1">Подпись</label>
+                                <textarea rows={2} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Когда зашёл в свой код..." className="w-full border-2 border-black bg-[#F4F1EA] p-3 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none" />
+                            </div>
+                            <div>
+                                <label className="block font-mono text-xs font-black uppercase mb-1">Категория</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {TAGS.filter(t => t !== '#все').map(t => (
+                                        <button type="button" key={t} onClick={() => setTag(t)} className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase ${tag === t ? `${TAG_COLORS[t]} shadow-[3px_3px_0px_0px_#000]` : 'bg-[#F4F1EA]'}`}>{t}</button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                <div onClick={() => fileInputRef.current?.click()} className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-black bg-[#F4F1EA] p-6 text-center">
+                                    <ImageIcon className="mb-2 h-8 w-8" />
+                                    <span className="text-sm font-black uppercase">Загрузить файл или GIF</span>
+                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                                </div>
+                            </div>
+                            {mediaUrl && <img src={mediaUrl} alt="Preview" className="max-h-48 w-full object-contain border-2 border-black bg-black" />}
+                            {error && <div className="bg-[#FF2A85] text-white p-2 font-mono text-xs font-bold">{error}</div>}
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button type="button" onClick={onClose} className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">Отмена</button>
+                                <button type="submit" className="border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000]">Опубликовать</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        function MemeCard({ post, author, users, onOpenProfile, onVote, onToggleEmoji, onAddComment }) {
+            const [showComments, setShowComments] = useState(false);
+            const [commentText, setCommentText] = useState('');
+
+            return (
+                <article className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000] mb-6">
+                    <div className="flex items-center justify-between border-b-2 border-black bg-[#F4F1EA] px-4 py-3">
+                        <button onClick={() => onOpenProfile(author.id)} className="flex items-center gap-3 text-left">
+                            <img src={author.avatar} alt={author.nickname} className="h-11 w-11 border-2 border-black object-cover" />
+                            <div>
+                                <span className="block font-black uppercase">{author.nickname}</span>
+                                <span className="font-mono text-[11px] font-bold text-black/60">{post.createdAt}</span>
+                            </div>
+                        </button>
+                        <span className={`border-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] ${TAG_COLORS[post.tag]}`}>{post.tag}</span>
+                    </div>
+
+                    <div className="p-4 sm:p-5">
+                        <p className="text-base font-black mb-3">{post.title}</p>
+                        <div className="flex items-center justify-center overflow-hidden border-2 border-black bg-black">
+                            <img src={post.mediaUrl} alt={post.title} className="max-h-[500px] w-full object-contain" />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 pb-4">
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => onVote(post.id, 'like')} className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${post.userVote === 'like' ? 'bg-[#FFB800]' : 'bg-white'}`}>
+                                <Flame className="h-4 w-4" /> <span>{post.likes}</span>
+                            </button>
+                            <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black bg-white shadow-[3px_3px_0px_0px_#000]">
+                                <MessageCircle className="h-4 w-4" /> <span>{post.comments.length}</span>
+                            </button>
+                        </div>
+                        <div className="flex gap-1.5">
+                            {QUICK_EMOJIS.map(emoji => (
+                                <button key={emoji} onClick={() => onToggleEmoji(post.id, emoji)} className="border-2 border-black px-2 py-1 bg-[#F4F1EA] shadow-[2px_2px_0px_0px_#000] font-mono text-xs">
+                                    {emoji} {post.emojis?.[emoji] || ''}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {showComments && (
+                        <div className="border-t-2 border-black bg-[#F4F1EA] p-4 space-y-3">
+                            {post.comments.map(c => {
+                                const cAuthor = users[c.authorId] || { nickname: 'Аноним', avatar: AVATAR_PRESETS[0] };
+                                return (
+                                    <div key={c.id} className="flex gap-2.5 border-2 border-black bg-white p-2.5 shadow-[2px_2px_0px_0px_#000]">
+                                        <img src={cAuthor.avatar} className="h-7 w-7 border-2 border-black object-cover" />
+                                        <div>
+                                            <span className="font-black text-xs uppercase">{cAuthor.nickname}</span>
+                                            <p className="text-xs font-bold">{c.text}</p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            <form onSubmit={(e) => { e.preventDefault(); if(!commentText) return; onAddComment(post.id, commentText); setCommentText(''); }} className="flex gap-2">
+                                <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Написать коммент..." className="flex-1 border-2 border-black bg-white px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0px_0px_#000] focus:outline-none" />
+                                <button type="submit" className="border-2 border-black bg-[#CCFF00] px-3 py-1.5 font-mono text-xs font-black shadow-[2px_2px_0px_0px_#000]">ОК</button>
+                            </form>
+                        </div>
+                    )}
+                </article>
+            );
+        }
+
+        function App() {
+            const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || INITIAL_USERS);
+            const [posts, setPosts] = useState(() => JSON.parse(localStorage.getItem(STORAGE_KEYS.POSTS)) || INITIAL_POSTS);
+            const [currentUserId] = useState('user_me');
+            const [activeView, setActiveView] = useState('feed');
+            const [profileTargetId, setProfileTargetId] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [selectedTag, setSelectedTag] = useState('#все');
+            const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+            useEffect(() => localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users)), [users]);
+            useEffect(() => localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts)), [posts]);
+
+            const currentUser = users[currentUserId];
+
+            const filteredPosts = useMemo(() => {
+                return posts.filter(post => {
+                    const author = users[post.authorId];
+                    const matchesSearch = !searchQuery || post.title.toLowerCase().includes(searchQuery.toLowerCase()) || author?.nickname.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesTag = selectedTag === '#все' || post.tag === selectedTag;
+                    return matchesSearch && matchesTag;
+                });
+            }, [posts, users, searchQuery, selectedTag]);
+
+            return (
+                <div className="min-h-screen pb-12">
+                    <BrutalPaperBackground />
+                    <BrutalHeader currentUser={currentUser} searchQuery={searchQuery} setSearchQuery={setSearchQuery} selectedTag={selectedTag} setSelectedTag={setSelectedTag} onOpenCreateModal={() => setIsCreateModalOpen(true)} onOpenProfile={(id) => { setProfileTargetId(id); setActiveView('profile'); }} onGoHome={() => setActiveView('feed')} activeView={activeView} />
+
+                    <main className="mx-auto max-w-xl px-3 py-6">
+                        {activeView === 'feed' ? (
+                            filtered.postsLength === 0 && filteredPosts.length === 0 ? <div className="p-6 bg-white border-2 border-black text-center font-mono font-bold">Ничего не найдено</div> :
+                            filteredPosts.map(post => <MemeCard key={post.id} post={post} author={users[post.authorId] || currentUser} users={users} onOpenProfile={(id) => { setProfileTargetId(id); setActiveView('profile'); }} onVote={(id, type) => {
+                                setPosts(posts.map(p => p.id === id ? { ...p, likes: p.userVote === type ? p.likes - 1 : p.likes + 1, userVote: p.userVote === type ? null : type } : p));
+                            }} onToggleEmoji={(id, emoji) => {
+                                setPosts(posts.map(p => p.id === id ? { ...p, emojis: { ...p.emojis, [emoji]: (p.emojis?.[emoji] || 0) + 1 } } : p));
+                            }} onAddComment={(id, text) => {
+                                setPosts(posts.map(p => p.id === id ? { ...p, comments: [...p.comments, { id: 'c_' + Date.now(), authorId: currentUserId, text, createdAt: 'Только что' }] } : p));
+                            }} />)
+                        ) : (
+                            <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_#000]">
+                                <button onClick={() => setActiveView('feed')} className="mb-4 flex items-center gap-2 border-2 border-black bg-[#CCFF00] px-3 py-1.5 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"><ArrowLeft className="h-4 w-4" /> Назад</button>
+                                <div className="h-32 border-2 border-black mb-4" style={{ background: users[profileTargetId]?.banner || currentUser.banner }} />
+                                <img src={users[profileTargetId]?.avatar || currentUser.avatar} className="h-20 w-20 border-4 border-black object-cover -mt-14 mb-3 bg-white shadow-[3px_3px_0px_0px_#000]" />
+                                <h1 className="text-2xl font-black uppercase">{users[profileTargetId]?.nickname || currentUser.nickname}</h1>
+                                <p className="font-mono text-xs font-bold text-black/70 mt-1">{users[profileTargetId]?.status || currentUser.status}</p>
+                            </div>
+                        )}
+                    </main>
+
+                    <CreateMemeModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onPublish={(newPost) => {
+                        setPosts([{ id: 'p_' + Date.now(), authorId: currentUserId, ...newPost, createdAt: 'Только что', likes: 1, dislikes: 0, comments: [] }, ...posts]);
+                    }} />
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
