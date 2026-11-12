@@ -13,6 +13,12 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Firebase SDK (Compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700;800&family=Inter:wght@700;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -27,109 +33,278 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
 
-        const STORAGE_KEYS = {
-            USERS: 'ugario_brutal_users_v3',
-            POSTS: 'ugario_brutal_posts_v3'
+        // ==========================================
+        // НАСТРОЙКА FIREBASE (Вставь свои ключи из консоли Firebase)
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyYOUR_API_KEY_HERE",
+            authDomain: "your-app.firebaseapp.com",
+            projectId: "your-app-id",
+            storageBucket: "your-app.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123:web:abc"
         };
 
-        const TAGS = ['#все', '#жиза', '#кринж', '#локальный_мем', '#видео'];
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
+        const TAGS = ['#все', '#жиза', '#кринж', '#локальный_мем', '#видео'];
         const TAG_COLORS = {
             '#жиза': 'bg-[#CCFF00] text-black',
             '#кринж': 'bg-[#FF2A85] text-white',
             '#локальный_мем': 'bg-[#3B82F6] text-white',
             '#видео': 'bg-[#FFB800] text-black'
         };
-
         const QUICK_EMOJIS = ['😂', '💀', '🔥', '🤡'];
-
-        const INITIAL_USERS = {
-            user_me: {
-                id: 'user_me',
-                nickname: 'КиберКот_2077',
-                status: 'Поставщик отборного кринжа 🌙⚡',
-                avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=250&q=80',
-                banner: 'linear-gradient(135deg, #CCFF00 0%, #FFB800 100%)',
-                joinedDate: 'Сентябрь 2025'
-            },
-            user_max: {
-                id: 'user_max',
-                nickname: 'Макс_Бессонница',
-                status: 'Сплю 3 часа в сутки ☕💀',
-                avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
-                banner: 'linear-gradient(135deg, #3B82F6 0%, #CCFF00 100%)',
-                joinedDate: 'Октябрь 2025'
-            }
-        };
-
-        const INITIAL_POSTS = [
-            {
-                id: 'post_1',
-                authorId: 'user_max',
-                title: 'Когда открыл ноутбук в 23:55 «просто проверить почту», а на часах уже 04:17 утра...',
-                tag: '#жиза',
-                mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbXp1OHB5Y2V0emR5Z2I1NXM3NnY1bHZ6eHh5b3N6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/13HgwGsXF0aiGY/giphy.gif',
-                createdAt: '24 МИН. НАЗАД',
-                likes: 42,
-                dislikes: 1,
-                userVote: null,
-                emojis: { '😂': 18, '💀': 14 },
-                userEmojis: ['💀'],
-                comments: [
-                    { id: 'c_101', authorId: 'user_me', text: 'Буквально я вчера 😂', createdAt: '19 МИН. НАЗАД' }
-                ]
-            }
+        const AVATAR_PRESETS = [
+            'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=250&q=80',
+            'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80'
         ];
 
+        // Экран Авторизации / Регистрации
+        function AuthScreen({ onLoginSuccess }) {
+            const [isRegister, setIsRegister] = useState(false);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [nickname, setNickname] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setLoading(true);
+
+                try {
+                    if (isRegister) {
+                        if (!nickname.trim()) {
+                            throw new Error('Введи никнейм!');
+                        }
+                        const res = await auth.createUserWithEmailAndPassword(email, password);
+                        // Сохраняем ник в Firestore
+                        await db.collection('users').doc(res.user.uid).set({
+                            id: res.user.uid,
+                            nickname: nickname.trim(),
+                            status: 'Новый участник тусовки ⚡',
+                            avatar: AVATAR_PRESETS[0],
+                            banner: 'linear-gradient(135deg, #CCFF00 0%, #FFB800 100%)',
+                            joinedDate: '2026'
+                        });
+                    } else {
+                        await auth.signInWithEmailAndPassword(email, password);
+                    }
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return (
+                <div className="min-h-screen flex items-center justify-center p-4">
+                    <div className="max-w-md w-full border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_#000]">
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b-2 border-black">
+                            <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]">
+                                ⚡
+                            </div>
+                            <h1 className="text-2xl font-black uppercase">УГАР.IO // {isRegister ? 'Регистрация' : 'Вход'}</h1>
+                        </div>
+
+                        {error && (
+                            <div className="mb-4 border-2 border-black bg-[#FF2A85] p-3 text-xs font-black text-white shadow-[3px_3px_0px_0px_#000]">
+                                ⚠️ {error}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            {isRegister && (
+                                <div>
+                                    <label className="block font-mono text-xs font-black uppercase mb-1">Никнейм</label>
+                                    <input 
+                                        type="text" 
+                                        value={nickname} 
+                                        onChange={e => setNickname(e.target.value)} 
+                                        placeholder="КиберКот_2077"
+                                        className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
+                                        required 
+                                    />
+                                </div>
+                            )}
+                            <div>
+                                <label className="block font-mono text-xs font-black uppercase mb-1">Email</label>
+                                <input 
+                                    type="email5" 
+                                    value={email} 
+                                    onChange={e => setEmail(e.target.value)} 
+                                    placeholder="mail@example.com"
+                                    className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
+                                    required 
+                                />
+                            </div>
+                            <div>
+                                <label className="block font-mono text-xs font-black uppercase mb-1">Пароль</label>
+                                <input 
+                                    type="password" 
+                                    value={password} 
+                                    onChange={e => setPassword(e.target.value)} 
+                                    placeholder="••••••••"
+                                    className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
+                                    required 
+                                />
+                            </div>
+
+                            <button 
+                                type="submit" 
+                                disabled={loading}
+                                className="w-full border-2 border-black bg-[#CCFF00] py-3 font-mono text-sm font-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                            >
+                                {loading ? 'Загрузка...' : (isRegister ? 'Зарегистрироваться' : 'Войти в тусовку')}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center">
+                            <button 
+                                onClick={() => setIsRegister(!isRegister)} 
+                                className="font-mono text-xs font-bold underline uppercase hover:text-[#FF2A85]"
+                            >
+                                {isRegister ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
         function App() {
-            const [users, setUsers] = useState(() => {
-                try {
-                    const saved = localStorage.getItem(STORAGE_KEYS.USERS);
-                    return saved ? JSON.parse(saved) : INITIAL_USERS;
-                } catch(e) { return INITIAL_USERS; }
-            });
-
-            const [posts, setPosts] = useState(() => {
-                try {
-                    const saved = localStorage.getItem(STORAGE_KEYS.POSTS);
-                    return saved ? JSON.parse(saved) : INITIAL_POSTS;
-                } catch(e) { return INITIAL_POSTS; }
-            });
-
-            const [currentUserId] = useState('user_me');
+            const [firebaseUser, setFirebaseUser] = useState(null);
+            const [currentUserProfile, setCurrentUserProfile] = useState(null);
+            const [posts, setPosts] = useState([]);
+            const [usersMap, setUsersMap] = useState({});
+            
             const [activeView, setActiveView] = useState('feed');
             const [profileTargetId, setProfileTargetId] = useState(null);
             const [searchQuery, setSearchQuery] = useState('');
             const [selectedTag, setSelectedTag] = useState('#все');
             const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-            
-            // Состояние для создания поста
+
+            // Поля создания поста
             const [newTitle, setNewTitle] = useState('');
             const [newTag, setNewTag] = useState('#жиза');
             const [newMedia, setNewMedia] = useState('');
 
+            // Следим за статусом авторизации Firebase
             useEffect(() => {
-                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-            }, [users]);
+                const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                    setFirebaseUser(user);
+                    if (user) {
+                        // Загружаем профиль из Firestore
+                        const docRef = db.collection('users').doc(user.uid);
+                        const doc = await docRef.get();
+                        if (doc.exists) {
+                            setCurrentUserProfile(doc.data());
+                        } else {
+                            // Если профиля нет, создаем базовый
+                            const basicProfile = {
+                                id: user.uid,
+                                nickname: user.email.split('@')[0],
+                                status: 'Мемодел 🚀',
+                                avatar: AVATAR_PRESETS[0],
+                                banner: 'linear-gradient(135deg, #CCFF00 0%, #FFB800 100%)',
+                                joinedDate: '2026'
+                            };
+                            await docRef.set(basicProfile);
+                            setCurrentUserProfile(basicProfile);
+                        }
+                    } else {
+                        setCurrentUserProfile(null);
+                    }
+                });
+                return () => unsubscribe();
+            }, []);
 
+            // Загружаем посты из Firestore в реальном времени
             useEffect(() => {
-                localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
-            }, [posts]);
+                const unsubscribe = db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+                    const loadedPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setPosts(loadedPosts);
+                });
+                // Загружаем всех пользователей для отображения аватарок в постах
+                const unsubUsers = db.collection('users').onSnapshot(snapshot => {
+                    const map = {};
+                    snapshot.docs.forEach(doc => {
+                        map[doc.id] = doc.data();
+                    });
+                    setUsersMap(map);
+                });
+                return () => { unsubscribe(); unsubUsers(); };
+            }, []);
 
-            const currentUser = users[currentUserId] || INITIAL_USERS.user_me;
+            if (!firebaseUser || !currentUserProfile) {
+                return (
+                    <div className="min-h-screen">
+                        <div className="fixed inset-0 -z-10 bg-[#F4F1EA]" style={{ backgroundImage: 'radial-gradient(#000000 1.25px, transparent 1.25px)', backgroundSize: '20px 20px' }}>
+                            <div className="absolute inset-0 bg-[#F4F1EA]/75" />
+                        </div>
+                        <AuthScreen />
+                    </div>
+                );
+            }
+
+            const handlePublish = async (e) => {
+                e.preventDefault();
+                if (!newTitle.trim() || !newMedia.trim()) return;
+
+                await db.collection('posts').add({
+                    authorId: firebaseUser.uid,
+                    title: newTitle.trim(),
+                    tag: newTag,
+                    mediaUrl: newMedia.trim(),
+                    createdAt: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                    likes: 1,
+                    userVotes: { [firebaseUser.uid]: 'like' },
+                    comments: []
+                });
+
+                setNewTitle('');
+                setNewMedia('');
+                setIsCreateModalOpen(false);
+            };
+
+            const handleVote = async (postId, currentLikes, currentVotes) => {
+                const votes = currentVotes || {};
+                const hasLiked = votes[firebaseUser.uid] === 'like';
+                const newVotes = { ...votes };
+                let newLikes = currentLikes;
+
+                if (hasLiked) {
+                    delete newVotes[firebaseUser.uid];
+                    newLikes -= 1;
+                } else {
+                    newVotes[firebaseUser.uid] = 'like';
+                    newLikes += 1;
+                }
+
+                await db.collection('posts').doc(postId).update({
+                    likes: newLikes,
+                    userVotes: newVotes
+                });
+            };
 
             const filteredPosts = useMemo(() => {
                 return posts.filter(post => {
-                    const author = users[post.authorId];
+                    const author = usersMap[post.authorId];
                     const matchesSearch = !searchQuery || post.title.toLowerCase().includes(searchQuery.toLowerCase()) || (author && author.nickname.toLowerCase().includes(searchQuery.toLowerCase()));
                     const matchesTag = selectedTag === '#все' || post.tag === selectedTag;
                     return matchesSearch && matchesTag;
                 });
-            }, [posts, users, searchQuery, selectedTag]);
+            }, [posts, usersMap, searchQuery, selectedTag]);
 
             return (
                 <div className="min-h-screen pb-12">
-                    {/* Фон с точками */}
                     <div className="fixed inset-0 -z-10 bg-[#F4F1EA]" style={{ backgroundImage: 'radial-gradient(#000000 1.25px, transparent 1.25px)', backgroundSize: '20px 20px' }}>
                         <div className="absolute inset-0 bg-[#F4F1EA]/75" />
                     </div>
@@ -145,12 +320,15 @@
                             </button>
 
                             <div className="flex items-center gap-2">
-                                <button onClick={() => setIsCreateModalOpen(true)} className="border-2 border-black bg-[#CCFF00] px-3 py-2 text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800]">
+                                <button onClick={() => setIsCreateModalOpen(true)} className="border-2 border-black bg-[#CCFF00] px-3 py-2 text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800] transition-all">
                                     + КИНУТЬ МЕМ
                                 </button>
-                                <button onClick={() => { setProfileTargetId(currentUserId); setActiveView('profile'); }} className="flex items-center gap-2 border-2 border-black bg-white p-1 pr-2 shadow-[4px_4px_0px_0px_#000]">
-                                    <img src={currentUser.avatar} className="h-7 w-7 border border-black object-cover" />
-                                    <span className="font-mono text-xs font-black uppercase">{currentUser.nickname}</span>
+                                <button onClick={() => { setProfileTargetId(firebaseUser.uid); setActiveView('profile'); }} className="flex items-center gap-2 border-2 border-black bg-white p-1 pr-2 shadow-[4px_4px_0px_0px_#000]">
+                                    <img src={currentUserProfile.avatar} className="h-7 w-7 border border-black object-cover" />
+                                    <span className="font-mono text-xs font-black uppercase">{currentUserProfile.nickname}</span>
+                                </button>
+                                <button onClick={() => auth.signOut()} className="border-2 border-black bg-[#FF2A85] px-2 py-1.5 text-xs font-bold text-white shadow-[2px_2px_0px_0px_#000]" title="Выйти">
+                                    🚪
                                 </button>
                             </div>
                         </div>
@@ -166,19 +344,20 @@
                         )}
                     </header>
 
-                    {/* Основной контент */}
+                    {/* Контент */}
                     <main className="mx-auto max-w-xl px-3 py-6">
                         {activeView === 'feed' ? (
                             <div className="space-y-6">
                                 {filteredPosts.length === 0 ? (
-                                    <div className="border-2 border-black bg-white p-8 text-center font-mono font-bold shadow-[4px_4px_0px_0px_#000]">Мемов не найдено 😢</div>
+                                    <div className="border-2 border-black bg-white p-8 text-center font-mono font-bold shadow-[4px_4px_0px_0px_#000]">Мемов пока нет. Стань первым! 🚀</div>
                                 ) : (
                                     filteredPosts.map(post => {
-                                        const author = users[post.authorId] || currentUser;
+                                        const author = usersMap[post.authorId] || { nickname: 'Аноним', avatar: AVATAR_PRESETS[0] };
+                                        const isLiked = post.userVotes && post.userVotes[firebaseUser.uid] === 'like';
                                         return (
                                             <article key={post.id} className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000]">
                                                 <div className="flex items-center justify-between border-b-2 border-black bg-[#F4F1EA] px-4 py-3">
-                                                    <button onClick={() => { setProfileTargetId(author.id); setActiveView('profile'); }} className="flex items-center gap-3">
+                                                    <button onClick={() => { setProfileTargetId(post.authorId); setActiveView('profile'); }} className="flex items-center gap-3">
                                                         <img src={author.avatar} className="h-10 w-10 border-2 border-black object-cover" />
                                                         <div className="text-left">
                                                             <span className="block font-black uppercase text-sm">{author.nickname}</span>
@@ -196,10 +375,11 @@
                                                 </div>
 
                                                 <div className="flex items-center justify-between px-4 pb-4">
-                                                    <button onClick={() => {
-                                                        setPosts(posts.map(p => p.id === post.id ? { ...p, likes: p.userVote === 'like' ? p.likes - 1 : p.likes + 1, userVote: p.userVote === 'like' ? null : 'like' } : p));
-                                                    }} className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${post.userVote === 'like' ? 'bg-[#FFB800]' : 'bg-white'}`}>
-                                                        🔥 Огонь ({post.likes})
+                                                    <button 
+                                                        onClick={() => handleVote(post.id, post.likes, post.userVotes)} 
+                                                        className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] transition-all ${isLiked ? 'bg-[#FFB800]' : 'bg-white'}`}
+                                                    >
+                                                        🔥 Огонь ({post.likes || 0})
                                                     </button>
                                                 </div>
                                             </article>
@@ -214,7 +394,7 @@
                                     ← Назад к ленте
                                 </button>
                                 {(() => {
-                                    const pUser = users[profileTargetId] || currentUser;
+                                    const pUser = usersMap[profileTargetId] || currentUserProfile;
                                     return (
                                         <div>
                                             <div className="h-28 border-2 border-black mb-3" style={{ background: pUser.banner }} />
@@ -233,34 +413,14 @@
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
                             <div className="border-4 border-black bg-white p-5 max-w-md w-full shadow-[8px_8px_0px_0px_#000]">
                                 <h2 className="text-lg font-black uppercase mb-3 border-b-2 border-black pb-2">Кинуть мем</h2>
-                                <div className="space-y-3">
-                                    <textarea placeholder="Подпись..." value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full border-2 border-black p-2 font-mono text-xs font-bold bg-[#F4F1EA]" />
-                                    <input type="text" placeholder="Ссылка на картинку/GIF" value={newMedia} onChange={e => setNewMedia(e.target.value)} className="w-full border-2 border-black p-2 font-mono text-xs font-bold bg-[#F4F1EA]" />
+                                <form onSubmit={handlePublish} className="space-y-3">
+                                    <textarea placeholder="Подпись..." value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full border-2 border-black p-2 font-mono text-xs font-bold bg-[#F4F1EA]" required />
+                                    <input type="url" placeholder="Ссылка на картинку/GIF (например, Giphy)" value={newMedia} onChange={e => setNewMedia(e.target.value)} className="w-full border-2 border-black p-2 font-mono text-xs font-bold bg-[#F4F1EA]" required />
                                     <div className="flex justify-end gap-2 pt-2">
-                                        <button onClick={() => setIsCreateModalOpen(false)} className="border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase bg-white">Отмена</button>
-                                        <button onClick={() => {
-                                            if(!newTitle || !newMedia) return;
-                                            const newPost = {
-                                                id: 'p_' + Date.now(),
-                                                authorId: currentUserId,
-                                                title: newTitle,
-                                                tag: newTag,
-                                                mediaUrl: newMedia,
-                                                createdAt: 'Только что',
-                                                likes: 1,
-                                                dislikes: 0,
-                                                userVote: 'like',
-                                                emojis: {},
-                                                userEmojis: [],
-                                                comments: []
-                                            };
-                                            setPosts([newPost, ...posts]);
-                                            setNewTitle('');
-                                            setNewMedia('');
-                                            setIsCreateModalOpen(false);
-                                        }} className="border-2 border-black bg-[#CCFF00] px-4 py-1.5 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">Опубликовать</button>
+                                        <button type="button" onClick={() => setIsCreateModalOpen(false)} className="border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase bg-white">Отмена</button>
+                                        <button type="submit" className="border-2 border-black bg-[#CCFF00] px-4 py-1.5 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">Опубликовать</button>
                                     </div>
-                                </div>
+                                </form>
                             </div>
                         </div>
                     )}
