@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>УГАР.IO — Acid Meme Zine</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <!-- Babel для обработки JSX в браузере -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Framer Motion -->
-    <script src="https://unpkg.com/framer-motion@11.11.17/dist/framer-motion.js"></script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -28,16 +26,10 @@
 
     <script type="text/babel">
         const { useState, useEffect, useMemo, useRef } = React;
-        const { motion, AnimatePresence } = window.Motion;
-        const {
-            Flame, ThumbsDown, MessageCircle, Plus, Search, Zap,
-            Image: ImageIcon, Link: LinkIcon, Upload, X, ArrowLeft,
-            Edit3, Send, Calendar, Award, Layers
-        } = window.LucideReact;
 
         const STORAGE_KEYS = {
-            USERS: 'ugario_brutal_users_v2',
-            POSTS: 'ugario_brutal_posts_v2'
+            USERS: 'ugario_brutal_users_v3',
+            POSTS: 'ugario_brutal_posts_v3'
         };
 
         const TAGS = ['#все', '#жиза', '#кринж', '#локальный_мем', '#видео'];
@@ -51,35 +43,11 @@
 
         const QUICK_EMOJIS = ['😂', '💀', '🔥', '🤡'];
 
-        const TICKER_ITEMS = [
-            '⚡ СЕРВЕР РАБОТАЕТ НА ЧЕСТНОМ СЛОВЕ И ЭНЕРГЕТИКАХ',
-            '🔥 ЗАЛИВАЙ СВЕЖИЙ КРИНЖ БЕЗ РЕГИСТРАЦИИ И СМС',
-            '💀 ВНИМАНИЕ: ПЕРЕДОЗИРОВКА ПОСТИРОНИЕЙ ОПАСНА ДЛЯ СНА',
-            '🤡 КТО НЕ ПОСТАВИЛ ОГОНЁК — ТОТ ДЕПЛОИТ В ПЯТНИЦУ ВЕЧЕРОМ'
-        ];
-
-        const BANNER_PRESETS = [
-            'repeating-linear-gradient(45deg, #CCFF00 0px, #CCFF00 20px, #000000 20px, #000000 24px)',
-            'linear-gradient(135deg, #FF2A85 0%, #FFB800 100%)',
-            'radial-gradient(#000000 2px, #3B82F6 2px)',
-            'linear-gradient(90deg, #CCFF00 0%, #3B82F6 50%, #FF2A85 100%)',
-            'repeating-linear-gradient(-45deg, #FFB800 0px, #FFB800 16px, #FF2A85 16px, #FF2A85 32px)'
-        ];
-
-        const AVATAR_PRESETS = [
-            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
-            'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=200&q=80'
-        ];
-
         const INITIAL_USERS = {
             user_me: {
                 id: 'user_me',
                 nickname: 'КиберКот_2077',
-                status: 'Поставщик отборного кринжа и ночных мемов 🌙⚡',
+                status: 'Поставщик отборного кринжа 🌙⚡',
                 avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=250&q=80',
                 banner: 'linear-gradient(135deg, #CCFF00 0%, #FFB800 100%)',
                 joinedDate: 'Сентябрь 2025'
@@ -87,26 +55,10 @@
             user_max: {
                 id: 'user_max',
                 nickname: 'Макс_Бессонница',
-                status: 'Сплю 3 часа в сутки, остальное время скроллю ленту ☕💀',
+                status: 'Сплю 3 часа в сутки ☕💀',
                 avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=250&q=80',
                 banner: 'linear-gradient(135deg, #3B82F6 0%, #CCFF00 100%)',
                 joinedDate: 'Октябрь 2025'
-            },
-            user_alina: {
-                id: 'user_alina',
-                nickname: 'Алина_Вайб',
-                status: 'Эксперт по локальным мемам и постиронии 💅🔥',
-                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
-                banner: 'linear-gradient(135deg, #FF2A85 0%, #FFB800 100%)',
-                joinedDate: 'Ноябрь 2025'
-            },
-            user_denis: {
-                id: 'user_denis',
-                nickname: 'Дэнчик_Дебаггер',
-                status: 'У меня на локалхосте всё работало 🤷‍♂️💻',
-                avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=250&q=80',
-                banner: 'repeating-linear-gradient(45deg, #CCFF00 0px, #CCFF00 20px, #000000 20px, #000000 24px)',
-                joinedDate: 'Январь 2026'
             }
         };
 
@@ -121,248 +73,55 @@
                 likes: 42,
                 dislikes: 1,
                 userVote: null,
-                emojis: { '😂': 18, '💀': 14, '🔥': 9, '🤡': 2 },
+                emojis: { '😂': 18, '💀': 14 },
                 userEmojis: ['💀'],
                 comments: [
-                    { id: 'c_101', authorId: 'user_alina', text: 'Буквально я вчера перед парой по матану 😭', createdAt: '19 МИН. НАЗАД' },
-                    { id: 'c_102', authorId: 'user_denis', text: '@Алина_Вайб классика, зато все мемы в сохраненках пересмотрены!', createdAt: '12 МИН. НАЗАД' }
-                ]
-            },
-            {
-                id: 'post_2',
-                authorId: 'user_denis',
-                title: 'Тимлид: «Там правка на 5 минут, зальёшь в прод до обеда?» Я в 18:45:',
-                tag: '#локальный_мем',
-                mediaUrl: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExN2J4eG16c3h6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6Z3B6JmVwPXYxX2ludGVybmFsX2dpZl9ieV9pZCZjdD1n/QMHoU66sBXqqLqYvGO/giphy.gif',
-                createdAt: '2 ЧАСА НАЗАД',
-                likes: 87,
-                dislikes: 0,
-                userVote: 'like',
-                emojis: { '😂': 31, '💀': 24, '🔥': 45, '🤡': 5 },
-                userEmojis: ['🔥', '😂'],
-                comments: [
-                    { id: 'c_201', authorId: 'user_me', text: 'This is fine. Главное в пятницу вечером не деплоить 😂', createdAt: '1 ЧАС НАЗАД' }
+                    { id: 'c_101', authorId: 'user_me', text: 'Буквально я вчера 😂', createdAt: '19 МИН. НАЗАД' }
                 ]
             }
         ];
 
-        function BrutalPaperBackground() {
-            return (
-                <div className="fixed inset-0 -z-10 bg-[#F4F1EA]" style={{
-                    backgroundImage: 'radial-gradient(#000000 1.25px, transparent 1.25px)',
-                    backgroundSize: '20px 20px'
-                }}>
-                    <div className="absolute inset-0 bg-[#F4F1EA]/75" />
-                </div>
-            );
-        }
-
-        function AcidMarqueeTicker() {
-            return (
-                <div className="overflow-hidden border-b-2 border-black bg-[#CCFF00] py-1.5 text-black select-none">
-                    <motion.div animate={{ x: ['0%', '-50%'] }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }} className="flex w-max items-center gap-8 font-mono text-xs font-black tracking-wider uppercase">
-                        {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, index) => (
-                            <span key={index} className="flex items-center gap-8">
-                                <span>{item}</span>
-                                <span className="inline-block h-2 w-2 rotate-45 bg-black" />
-                            </span>
-                        ))}
-                    </motion.div>
-                </div>
-            );
-        }
-
-        function BrutalHeader({ currentUser, searchQuery, setSearchQuery, selectedTag, setSelectedTag, onOpenCreateModal, onOpenProfile, onGoHome, activeView }) {
-            return (
-                <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
-                    <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6">
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                            <button onClick={onGoHome} className="group flex items-center gap-3 text-left focus:outline-none">
-                                <div className="flex h-11 w-11 -rotate-3 items-center justify-center border-2 border-black bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]">
-                                    <Zap className="h-6 w-6 fill-[#CCFF00] text-black" />
-                                </div>
-                                <div>
-                                    <span className="border-2 border-black bg-[#CCFF00] px-2 py-0.5 text-lg font-black tracking-tight text-black uppercase shadow-[2px_2px_0px_0px_#000] sm:text-xl">УГАР.IO</span>
-                                    <span className="mt-0.5 block font-mono text-[10px] font-bold tracking-widest text-black/70 uppercase">ACID MEME ZINE</span>
-                                </div>
-                            </button>
-
-                            <div className="order-3 w-full md:order-2 md:max-w-xs lg:max-w-sm">
-                                <div className="relative flex items-center">
-                                    <Search className="pointer-events-none absolute left-3 h-4 w-4 text-black" />
-                                    <input type="text" value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); if (activeView !== 'feed') onGoHome(); }} placeholder="НАЙТИ МЕМ ИЛИ КЕНТА..." className="w-full border-2 border-black bg-[#F4F1EA] py-2 pr-8 pl-9 font-mono text-xs font-bold text-black placeholder-black/45 shadow-[3px_3px_0px_0px_#000] focus:outline-none" />
-                                    {searchQuery && <button onClick={() => setSearchQuery('')} className="absolute right-2 border border-black bg-white p-0.5"><X className="h-3.5 w-3.5" /></button>}
-                                </div>
-                            </div>
-
-                            <div className="order-2 flex items-center gap-2.5 md:order-3">
-                                <button onClick={onOpenCreateModal} className="flex items-center gap-1.5 border-2 border-black bg-[#CCFF00] px-3.5 py-2 text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800]">
-                                    <Plus className="h-4 w-4 stroke-[3]" /> <span>КИНУТЬ МЕМ</span>
-                                </button>
-                                <button onClick={() => onOpenProfile(currentUser.id)} className="flex items-center gap-2 border-2 border-black bg-white p-1 pr-2.5 shadow-[4px_4px_0px_0px_#000]">
-                                    <img src={currentUser.avatar} alt={currentUser.nickname} className="h-8 w-8 border-2 border-black object-cover" />
-                                    <span className="hidden max-w-[110px] truncate font-mono text-xs font-black uppercase sm:inline">{currentUser.nickname}</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {activeView === 'feed' && (
-                            <div className="mt-3 flex items-center gap-2 overflow-x-auto pt-1 pb-1 no-scrollbar">
-                                {TAGS.map((tag) => (
-                                    <button key={tag} onClick={() => setSelectedTag(tag)} className={`shrink-0 border-2 border-black px-3 py-1 font-mono text-xs font-black uppercase ${selectedTag === tag ? 'bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]' : 'bg-[#F4F1EA] text-black shadow-[2px_2px_0px_0px_#000]'}`}>
-                                        {tag}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                    <AcidMarqueeTicker />
-                </header>
-            );
-        }
-
-        function CreateMemeModal({ isOpen, onClose, onPublish }) {
-            const [title, setTitle] = useState('');
-            const [tag, setTag] = useState('#жиза');
-            const [mediaUrl, setMediaUrl] = useState('');
-            const [error, setError] = useState('');
-            const fileInputRef = useRef(null);
-
-            if (!isOpen) return null;
-
-            const handleFileUpload = (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = () => { setMediaUrl(reader.result); setError(''); };
-                reader.readAsDataURL(file);
-            };
-
-            return (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div onClick={onClose} className="fixed inset-0 bg-black/75" />
-                    <div className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto border-4 border-black bg-white p-5 shadow-[8px_8px_0px_0px_#000]">
-                        <div className="flex items-center justify-between border-b-2 border-black pb-3.5">
-                            <h2 className="text-xl font-black uppercase">ЗАКИНУТЬ НОВЫЙ МЕМ</h2>
-                            <button onClick={onClose} className="border-2 border-black bg-[#FF2A85] p-1.5 text-white"><X className="h-5 w-5" /></button>
-                        </div>
-                        <form onSubmit={(e) => { e.preventDefault(); if(!title || !mediaUrl) { setError('Заполни текст и картинку!'); return; } onPublish({ title, tag, mediaUrl }); setTitle(''); setMediaUrl(''); onClose(); }} className="mt-4 space-y-4">
-                            <div>
-                                <label className="block font-mono text-xs font-black uppercase mb-1">Подпись</label>
-                                <textarea rows={2} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Когда зашёл в свой код..." className="w-full border-2 border-black bg-[#F4F1EA] p-3 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none" />
-                            </div>
-                            <div>
-                                <label className="block font-mono text-xs font-black uppercase mb-1">Категория</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {TAGS.filter(t => t !== '#все').map(t => (
-                                        <button type="button" key={t} onClick={() => setTag(t)} className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase ${tag === t ? `${TAG_COLORS[t]} shadow-[3px_3px_0px_0px_#000]` : 'bg-[#F4F1EA]'}`}>{t}</button>
-                                    ))}
-                                </div>
-                            </div>
-                            <div>
-                                <div onClick={() => fileInputRef.current?.click()} className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-black bg-[#F4F1EA] p-6 text-center">
-                                    <ImageIcon className="mb-2 h-8 w-8" />
-                                    <span className="text-sm font-black uppercase">Загрузить файл или GIF</span>
-                                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-                                </div>
-                            </div>
-                            {mediaUrl && <img src={mediaUrl} alt="Preview" className="max-h-48 w-full object-contain border-2 border-black bg-black" />}
-                            {error && <div className="bg-[#FF2A85] text-white p-2 font-mono text-xs font-bold">{error}</div>}
-                            <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={onClose} className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">Отмена</button>
-                                <button type="submit" className="border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000]">Опубликовать</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            );
-        }
-
-        function MemeCard({ post, author, users, onOpenProfile, onVote, onToggleEmoji, onAddComment }) {
-            const [showComments, setShowComments] = useState(false);
-            const [commentText, setCommentText] = useState('');
-
-            return (
-                <article className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000] mb-6">
-                    <div className="flex items-center justify-between border-b-2 border-black bg-[#F4F1EA] px-4 py-3">
-                        <button onClick={() => onOpenProfile(author.id)} className="flex items-center gap-3 text-left">
-                            <img src={author.avatar} alt={author.nickname} className="h-11 w-11 border-2 border-black object-cover" />
-                            <div>
-                                <span className="block font-black uppercase">{author.nickname}</span>
-                                <span className="font-mono text-[11px] font-bold text-black/60">{post.createdAt}</span>
-                            </div>
-                        </button>
-                        <span className={`border-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] ${TAG_COLORS[post.tag]}`}>{post.tag}</span>
-                    </div>
-
-                    <div className="p-4 sm:p-5">
-                        <p className="text-base font-black mb-3">{post.title}</p>
-                        <div className="flex items-center justify-center overflow-hidden border-2 border-black bg-black">
-                            <img src={post.mediaUrl} alt={post.title} className="max-h-[500px] w-full object-contain" />
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 pb-4">
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => onVote(post.id, 'like')} className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${post.userVote === 'like' ? 'bg-[#FFB800]' : 'bg-white'}`}>
-                                <Flame className="h-4 w-4" /> <span>{post.likes}</span>
-                            </button>
-                            <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black bg-white shadow-[3px_3px_0px_0px_#000]">
-                                <MessageCircle className="h-4 w-4" /> <span>{post.comments.length}</span>
-                            </button>
-                        </div>
-                        <div className="flex gap-1.5">
-                            {QUICK_EMOJIS.map(emoji => (
-                                <button key={emoji} onClick={() => onToggleEmoji(post.id, emoji)} className="border-2 border-black px-2 py-1 bg-[#F4F1EA] shadow-[2px_2px_0px_0px_#000] font-mono text-xs">
-                                    {emoji} {post.emojis?.[emoji] || ''}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {showComments && (
-                        <div className="border-t-2 border-black bg-[#F4F1EA] p-4 space-y-3">
-                            {post.comments.map(c => {
-                                const cAuthor = users[c.authorId] || { nickname: 'Аноним', avatar: AVATAR_PRESETS[0] };
-                                return (
-                                    <div key={c.id} className="flex gap-2.5 border-2 border-black bg-white p-2.5 shadow-[2px_2px_0px_0px_#000]">
-                                        <img src={cAuthor.avatar} className="h-7 w-7 border-2 border-black object-cover" />
-                                        <div>
-                                            <span className="font-black text-xs uppercase">{cAuthor.nickname}</span>
-                                            <p className="text-xs font-bold">{c.text}</p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <form onSubmit={(e) => { e.preventDefault(); if(!commentText) return; onAddComment(post.id, commentText); setCommentText(''); }} className="flex gap-2">
-                                <input type="text" value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder="Написать коммент..." className="flex-1 border-2 border-black bg-white px-3 py-1.5 font-mono text-xs shadow-[2px_2px_0px_0px_#000] focus:outline-none" />
-                                <button type="submit" className="border-2 border-black bg-[#CCFF00] px-3 py-1.5 font-mono text-xs font-black shadow-[2px_2px_0px_0px_#000]">ОК</button>
-                            </form>
-                        </div>
-                    )}
-                </article>
-            );
-        }
-
         function App() {
-            const [users, setUsers] = useState(() => JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || INITIAL_USERS);
-            const [posts, setPosts] = useState(() => JSON.parse(localStorage.getItem(STORAGE_KEYS.POSTS)) || INITIAL_POSTS);
+            const [users, setUsers] = useState(() => {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEYS.USERS);
+                    return saved ? JSON.parse(saved) : INITIAL_USERS;
+                } catch(e) { return INITIAL_USERS; }
+            });
+
+            const [posts, setPosts] = useState(() => {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEYS.POSTS);
+                    return saved ? JSON.parse(saved) : INITIAL_POSTS;
+                } catch(e) { return INITIAL_POSTS; }
+            });
+
             const [currentUserId] = useState('user_me');
             const [activeView, setActiveView] = useState('feed');
             const [profileTargetId, setProfileTargetId] = useState(null);
             const [searchQuery, setSearchQuery] = useState('');
             const [selectedTag, setSelectedTag] = useState('#все');
             const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+            
+            // Состояние для создания поста
+            const [newTitle, setNewTitle] = useState('');
+            const [newTag, setNewTag] = useState('#жиза');
+            const [newMedia, setNewMedia] = useState('');
 
-            useEffect(() => localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users)), [users]);
-            useEffect(() => localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts)), [posts]);
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+            }, [users]);
 
-            const currentUser = users[currentUserId];
+            useEffect(() => {
+                localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
+            }, [posts]);
+
+            const currentUser = users[currentUserId] || INITIAL_USERS.user_me;
 
             const filteredPosts = useMemo(() => {
                 return posts.filter(post => {
                     const author = users[post.authorId];
-                    const matchesSearch = !searchQuery || post.title.toLowerCase().includes(searchQuery.toLowerCase()) || author?.nickname.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesSearch = !searchQuery || post.title.toLowerCase().includes(searchQuery.toLowerCase()) || (author && author.nickname.toLowerCase().includes(searchQuery.toLowerCase()));
                     const matchesTag = selectedTag === '#все' || post.tag === selectedTag;
                     return matchesSearch && matchesTag;
                 });
@@ -370,33 +129,141 @@
 
             return (
                 <div className="min-h-screen pb-12">
-                    <BrutalPaperBackground />
-                    <BrutalHeader currentUser={currentUser} searchQuery={searchQuery} setSearchQuery={setSearchQuery} selectedTag={selectedTag} setSelectedTag={setSelectedTag} onOpenCreateModal={() => setIsCreateModalOpen(true)} onOpenProfile={(id) => { setProfileTargetId(id); setActiveView('profile'); }} onGoHome={() => setActiveView('feed')} activeView={activeView} />
+                    {/* Фон с точками */}
+                    <div className="fixed inset-0 -z-10 bg-[#F4F1EA]" style={{ backgroundImage: 'radial-gradient(#000000 1.25px, transparent 1.25px)', backgroundSize: '20px 20px' }}>
+                        <div className="absolute inset-0 bg-[#F4F1EA]/75" />
+                    </div>
 
+                    {/* Шапка */}
+                    <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
+                        <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+                            <button onClick={() => setActiveView('feed')} className="flex items-center gap-3 text-left focus:outline-none">
+                                <div className="flex h-10 w-10 -rotate-3 items-center justify-center border-2 border-black bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000]">
+                                    ⚡
+                                </div>
+                                <span className="border-2 border-black bg-[#CCFF00] px-2 py-0.5 text-lg font-black tracking-tight text-black uppercase shadow-[2px_2px_0px_0px_#000]">УГАР.IO</span>
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => setIsCreateModalOpen(true)} className="border-2 border-black bg-[#CCFF00] px-3 py-2 text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800]">
+                                    + КИНУТЬ МЕМ
+                                </button>
+                                <button onClick={() => { setProfileTargetId(currentUserId); setActiveView('profile'); }} className="flex items-center gap-2 border-2 border-black bg-white p-1 pr-2 shadow-[4px_4px_0px_0px_#000]">
+                                    <img src={currentUser.avatar} className="h-7 w-7 border border-black object-cover" />
+                                    <span className="font-mono text-xs font-black uppercase">{currentUser.nickname}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {activeView === 'feed' && (
+                            <div className="mx-auto max-w-4xl px-3 pb-2 flex gap-2 overflow-x-auto no-scrollbar">
+                                {TAGS.map(tag => (
+                                    <button key={tag} onClick={() => setSelectedTag(tag)} className={`border-2 border-black px-2.5 py-0.5 font-mono text-xs font-black uppercase ${selectedTag === tag ? 'bg-[#FF2A85] text-white shadow-[2px_2px_0px_0px_#000]' : 'bg-[#F4F1EA]'}`}>
+                                        {tag}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </header>
+
+                    {/* Основной контент */}
                     <main className="mx-auto max-w-xl px-3 py-6">
                         {activeView === 'feed' ? (
-                            filtered.postsLength === 0 && filteredPosts.length === 0 ? <div className="p-6 bg-white border-2 border-black text-center font-mono font-bold">Ничего не найдено</div> :
-                            filteredPosts.map(post => <MemeCard key={post.id} post={post} author={users[post.authorId] || currentUser} users={users} onOpenProfile={(id) => { setProfileTargetId(id); setActiveView('profile'); }} onVote={(id, type) => {
-                                setPosts(posts.map(p => p.id === id ? { ...p, likes: p.userVote === type ? p.likes - 1 : p.likes + 1, userVote: p.userVote === type ? null : type } : p));
-                            }} onToggleEmoji={(id, emoji) => {
-                                setPosts(posts.map(p => p.id === id ? { ...p, emojis: { ...p.emojis, [emoji]: (p.emojis?.[emoji] || 0) + 1 } } : p));
-                            }} onAddComment={(id, text) => {
-                                setPosts(posts.map(p => p.id === id ? { ...p, comments: [...p.comments, { id: 'c_' + Date.now(), authorId: currentUserId, text, createdAt: 'Только что' }] } : p));
-                            }} />)
+                            <div className="space-y-6">
+                                {filteredPosts.length === 0 ? (
+                                    <div className="border-2 border-black bg-white p-8 text-center font-mono font-bold shadow-[4px_4px_0px_0px_#000]">Мемов не найдено 😢</div>
+                                ) : (
+                                    filteredPosts.map(post => {
+                                        const author = users[post.authorId] || currentUser;
+                                        return (
+                                            <article key={post.id} className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000]">
+                                                <div className="flex items-center justify-between border-b-2 border-black bg-[#F4F1EA] px-4 py-3">
+                                                    <button onClick={() => { setProfileTargetId(author.id); setActiveView('profile'); }} className="flex items-center gap-3">
+                                                        <img src={author.avatar} className="h-10 w-10 border-2 border-black object-cover" />
+                                                        <div className="text-left">
+                                                            <span className="block font-black uppercase text-sm">{author.nickname}</span>
+                                                            <span className="font-mono text-[10px] text-black/60">{post.createdAt}</span>
+                                                        </div>
+                                                    </button>
+                                                    <span className={`border-2 border-black px-2 py-0.5 font-mono text-xs font-black uppercase ${TAG_COLORS[post.tag] || 'bg-[#CCFF00]'}`}>{post.tag}</span>
+                                                </div>
+
+                                                <div className="p-4">
+                                                    <p className="font-black text-base mb-3">{post.title}</p>
+                                                    <div className="border-2 border-black bg-black flex justify-center overflow-hidden">
+                                                        <img src={post.mediaUrl} className="max-h-[450px] w-full object-contain" />
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between px-4 pb-4">
+                                                    <button onClick={() => {
+                                                        setPosts(posts.map(p => p.id === post.id ? { ...p, likes: p.userVote === 'like' ? p.likes - 1 : p.likes + 1, userVote: p.userVote === 'like' ? null : 'like' } : p));
+                                                    }} className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${post.userVote === 'like' ? 'bg-[#FFB800]' : 'bg-white'}`}>
+                                                        🔥 Огонь ({post.likes})
+                                                    </button>
+                                                </div>
+                                            </article>
+                                        );
+                                    })
+                                )}
+                            </div>
                         ) : (
-                            <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_#000]">
-                                <button onClick={() => setActiveView('feed')} className="mb-4 flex items-center gap-2 border-2 border-black bg-[#CCFF00] px-3 py-1.5 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"><ArrowLeft className="h-4 w-4" /> Назад</button>
-                                <div className="h-32 border-2 border-black mb-4" style={{ background: users[profileTargetId]?.banner || currentUser.banner }} />
-                                <img src={users[profileTargetId]?.avatar || currentUser.avatar} className="h-20 w-20 border-4 border-black object-cover -mt-14 mb-3 bg-white shadow-[3px_3px_0px_0px_#000]" />
-                                <h1 className="text-2xl font-black uppercase">{users[profileTargetId]?.nickname || currentUser.nickname}</h1>
-                                <p className="font-mono text-xs font-bold text-black/70 mt-1">{users[profileTargetId]?.status || currentUser.status}</p>
+                            /* Профиль */
+                            <div className="border-4 border-black bg-white p-5 shadow-[8px_8px_0px_0px_#000]">
+                                <button onClick={() => setActiveView('feed')} className="mb-4 border-2 border-black bg-[#CCFF00] px-3 py-1 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">
+                                    ← Назад к ленте
+                                </button>
+                                {(() => {
+                                    const pUser = users[profileTargetId] || currentUser;
+                                    return (
+                                        <div>
+                                            <div className="h-28 border-2 border-black mb-3" style={{ background: pUser.banner }} />
+                                            <img src={pUser.avatar} className="h-20 w-20 border-4 border-black object-cover -mt-12 mb-2 bg-white shadow-[3px_3px_0px_0px_#000]" />
+                                            <h1 className="text-xl font-black uppercase">{pUser.nickname}</h1>
+                                            <p className="font-mono text-xs font-bold text-black/70 mt-1">{pUser.status}</p>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         )}
                     </main>
 
-                    <CreateMemeModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onPublish={(newPost) => {
-                        setPosts([{ id: 'p_' + Date.now(), authorId: currentUserId, ...newPost, createdAt: 'Только что', likes: 1, dislikes: 0, comments: [] }, ...posts]);
-                    }} />
+                    {/* Модалка создания поста */}
+                    {isCreateModalOpen && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+                            <div className="border-4 border-black bg-white p-5 max-w-md w-full shadow-[8px_8px_0px_0px_#000]">
+                                <h2 className="text-lg font-black uppercase mb-3 border-b-2 border-black pb-2">Кинуть мем</h2>
+                                <div className="space-y-3">
+                                    <textarea placeholder="Подпись..." value={newTitle} onChange={e => setNewTitle(e.target.value)} className="w-full border-2 border-black p-2 font-mono text-xs font-bold bg-[#F4F1EA]" />
+                                    <input type="text" placeholder="Ссылка на картинку/GIF" value={newMedia} onChange={e => setNewMedia(e.target.value)} className="w-full border-2 border-black p-2 font-mono text-xs font-bold bg-[#F4F1EA]" />
+                                    <div className="flex justify-end gap-2 pt-2">
+                                        <button onClick={() => setIsCreateModalOpen(false)} className="border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase bg-white">Отмена</button>
+                                        <button onClick={() => {
+                                            if(!newTitle || !newMedia) return;
+                                            const newPost = {
+                                                id: 'p_' + Date.now(),
+                                                authorId: currentUserId,
+                                                title: newTitle,
+                                                tag: newTag,
+                                                mediaUrl: newMedia,
+                                                createdAt: 'Только что',
+                                                likes: 1,
+                                                dislikes: 0,
+                                                userVote: 'like',
+                                                emojis: {},
+                                                userEmojis: [],
+                                                comments: []
+                                            };
+                                            setPosts([newPost, ...posts]);
+                                            setNewTitle('');
+                                            setNewMedia('');
+                                            setIsCreateModalOpen(false);
+                                        }} className="border-2 border-black bg-[#CCFF00] px-4 py-1.5 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">Опубликовать</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
