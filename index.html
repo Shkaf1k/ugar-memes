@@ -23,12 +23,12 @@ import {
 } from 'lucide-react';
 
 // ============================================================================
-// 1. КОНСТАНТЫ И ДЕМО-ДАННЫЕ (ДЛЯ ЖИВОГО СТАРТА ПРИЛОЖЕНИЯ)
+// 1. КОНСТАНТЫ И ДЕМО-ДАННЫЕ
 // ============================================================================
 
 const STORAGE_KEYS = {
-  USERS: 'ugario_brutal_users_v1',
-  POSTS: 'ugario_brutal_posts_v1'
+  USERS: 'ugario_brutal_users_v2',
+  POSTS: 'ugario_brutal_posts_v2'
 };
 
 const TAGS = ['#все', '#жиза', '#кринж', '#локальный_мем', '#видео'];
@@ -215,12 +215,9 @@ const INITIAL_POSTS = [
 ];
 
 // ============================================================================
-// 2. ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ ИНТЕРФЕЙСА (NEO-BRUTALISM / ACID ZINE)
+// 2. ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ
 // ============================================================================
 
-/**
- * Газетный фон с точечным комикс-растром (Halftone dot pattern)
- */
 const BrutalPaperBackground = () => (
   <div
     className="fixed inset-0 -z-10 bg-[#F4F1EA]"
@@ -230,14 +227,10 @@ const BrutalPaperBackground = () => (
       backgroundPosition: '0 0'
     }}
   >
-    {/* Лёгкий слой смягчения точек для читаемости */}
     <div className="absolute inset-0 bg-[#F4F1EA]/75" />
   </div>
 );
 
-/**
- * Бегущая строка (Acid Ticker) под шапкой
- */
 const AcidMarqueeTicker = () => (
   <div className="overflow-hidden border-b-2 border-black bg-[#CCFF00] py-1.5 text-black select-none">
     <motion.div
@@ -255,9 +248,6 @@ const AcidMarqueeTicker = () => (
   </div>
 );
 
-/**
- * Брутальная верхняя панель (Header) с логотипом-стикером и тегами
- */
 const BrutalHeader = ({
   currentUser,
   searchQuery,
@@ -273,7 +263,6 @@ const BrutalHeader = ({
     <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
       <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Брутальный логотип-стикер */}
           <button
             onClick={onGoHome}
             className="group flex items-center gap-3 text-left focus:outline-none"
@@ -293,7 +282,6 @@ const BrutalHeader = ({
             </div>
           </button>
 
-          {/* Поле поиска */}
           <div className="order-3 w-full md:order-2 md:max-w-xs lg:max-w-sm">
             <div className="relative flex items-center">
               <Search className="pointer-events-none absolute left-3 h-4 w-4 text-black" />
@@ -311,7 +299,6 @@ const BrutalHeader = ({
                 <button
                   onClick={() => setSearchQuery('')}
                   className="absolute right-2 border border-black bg-white p-0.5 text-black hover:bg-[#FF2A85] hover:text-white"
-                  aria-label="Очистить поиск"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -319,7 +306,6 @@ const BrutalHeader = ({
             </div>
           </div>
 
-          {/* Правая группа: Кнопка "+ КИНУТЬ МЕМ" и Мини-профиль */}
           <div className="order-2 flex items-center gap-2.5 md:order-3">
             <button
               onClick={onOpenCreateModal}
@@ -345,7 +331,6 @@ const BrutalHeader = ({
           </div>
         </div>
 
-        {/* Полоса фильтрации по тегам */}
         {activeView === 'feed' && (
           <div className="mt-3 flex items-center gap-2 overflow-x-auto pt-1 pb-1 no-scrollbar">
             {TAGS.map((tag) => {
@@ -367,21 +352,19 @@ const BrutalHeader = ({
           </div>
         )}
       </div>
-
-      {/* Кислотная бегущая строка */}
       <AcidMarqueeTicker />
     </header>
   );
 };
 
 // ============================================================================
-// 3. МОДАЛЬНОЕ ОКНО СОЗДАНИЯ МЕМА
+// 3. МОДАЛКА СОЗДАНИЯ МЕМА
 // ============================================================================
 
 const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
   const [title, setTitle] = useState('');
   const [tag, setTag] = useState('#жиза');
-  const [inputMode, setInputMode] = useState('file'); // 'file' | 'url'
+  const [inputMode, setInputMode] = useState('file');
   const [mediaUrl, setMediaUrl] = useState('');
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
@@ -401,7 +384,7 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
       setError('');
     };
     reader.onerror = () => {
-      setError('ОШИБКА ЧТЕНИЯ ФАЙЛА. ПОПРОБУЙ ДРУГОЙ.');
+      setError('ОШИБКА ЧТЕНИЯ ФАЙЛА.');
     };
     reader.readAsDataURL(file);
   };
@@ -413,7 +396,7 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
       return;
     }
     if (!mediaUrl.trim()) {
-      setError('ЗАГРУЗИ КАРТИНКУ/GIF ИЛИ ВСТАВЬ ССЫЛКУ!');
+      setError('ЗАГРУЗИ КАРТИНКУ ИЛИ ВСТАВЬ ССЫЛКУ!');
       return;
     }
 
@@ -434,7 +417,6 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Жёсткое затемнение */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -443,12 +425,10 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
             className="fixed inset-0 bg-black/75"
           />
 
-          {/* Брутальное окно */}
           <motion.div
             initial={{ opacity: 0, scale: 0.94, y: 16 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 16 }}
-            transition={{ duration: 0.18 }}
             className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto border-4 border-black bg-white p-5 shadow-[8px_8px_0px_0px_#000] sm:p-6"
           >
             <div className="flex items-center justify-between border-b-2 border-black pb-3.5">
@@ -462,14 +442,13 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
               </div>
               <button
                 onClick={onClose}
-                className="border-2 border-black bg-[#FF2A85] p-1.5 text-white shadow-[2px_2px_0px_0px_#000] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                className="border-2 border-black bg-[#FF2A85] p-1.5 text-white shadow-[2px_2px_0px_0px_#000]"
               >
                 <X className="h-5 w-5 stroke-[3]" />
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              {/* Заголовок / подпись */}
               <div>
                 <label className="mb-1.5 block font-mono text-xs font-black tracking-wider text-black uppercase">
                   1. ПОДПИСЬ К МЕМУ
@@ -483,7 +462,6 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                 />
               </div>
 
-              {/* Выбор тега */}
               <div>
                 <label className="mb-1.5 block font-mono text-xs font-black tracking-wider text-black uppercase">
                   2. ВЫБЕРИ КАТЕГОРИЮ
@@ -494,9 +472,9 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                       type="button"
                       key={t}
                       onClick={() => setTag(t)}
-                      className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
+                      className={`border-2 border-black px-3 py-1.5 font-mono text-xs font-black uppercase transition-all ${
                         tag === t
-                          ? `${TAG_COLORS[t] || 'bg-[#CCFF00] text-black'} shadow-[3px_3px_0px_0px_#000]`
+                          ? `${TAG_COLORS[t]} shadow-[3px_3px_0px_0px_#000]`
                           : 'bg-[#F4F1EA] text-black hover:bg-white'
                       }`}
                     >
@@ -506,7 +484,6 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                 </div>
               </div>
 
-              {/* Способ загрузки */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <label className="font-mono text-xs font-black tracking-wider text-black uppercase">
@@ -516,26 +493,20 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                     <button
                       type="button"
                       onClick={() => setInputMode('file')}
-                      className={`flex items-center gap-1 px-2.5 py-1 font-mono text-xs font-black uppercase transition ${
-                        inputMode === 'file'
-                          ? 'bg-black text-[#CCFF00]'
-                          : 'text-black hover:bg-white'
+                      className={`flex items-center gap-1 px-2.5 py-1 font-mono text-xs font-black uppercase ${
+                        inputMode === 'file' ? 'bg-black text-[#CCFF00]' : 'text-black'
                       }`}
                     >
-                      <Upload className="h-3.5 w-3.5" />
-                      Файл
+                      <Upload className="h-3.5 w-3.5" /> Файл
                     </button>
                     <button
                       type="button"
                       onClick={() => setInputMode('url')}
-                      className={`flex items-center gap-1 border-l-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase transition ${
-                        inputMode === 'url'
-                          ? 'bg-black text-[#CCFF00]'
-                          : 'text-black hover:bg-white'
+                      className={`flex items-center gap-1 border-l-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase ${
+                        inputMode === 'url' ? 'bg-black text-[#CCFF00]' : 'text-black'
                       }`}
                     >
-                      <LinkIcon className="h-3.5 w-3.5" />
-                      Ссылка
+                      <LinkIcon className="h-3.5 w-3.5" /> Ссылка
                     </button>
                   </div>
                 </div>
@@ -543,15 +514,10 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                 {inputMode === 'file' ? (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-black bg-[#F4F1EA] px-4 py-6 text-center transition hover:bg-[#CCFF00]/40"
+                    className="flex cursor-pointer flex-col items-center justify-center border-2 border-dashed border-black bg-[#F4F1EA] px-4 py-6 text-center hover:bg-[#CCFF00]/40"
                   >
                     <ImageIcon className="mb-2 h-8 w-8 text-black" />
-                    <p className="text-sm font-black text-black uppercase">
-                      КЛИКНИ, ЧТОБЫ ВЫБРАТЬ ФАЙЛ
-                    </p>
-                    <p className="mt-1 font-mono text-xs font-bold text-black/60">
-                      PNG, JPG, GIF, WEBP
-                    </p>
+                    <p className="text-sm font-black text-black uppercase">КЛИКНИ, ЧТОБЫ ВЫБРАТЬ ФАЙЛ</p>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -565,27 +531,21 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                     type="url"
                     value={mediaUrl}
                     onChange={(e) => setMediaUrl(e.target.value)}
-                    placeholder="https://media.giphy.com/media/.../giphy.gif"
-                    className="w-full border-2 border-black bg-[#F4F1EA] px-3.5 py-2.5 font-mono text-xs font-bold text-black placeholder-black/40 shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
+                    placeholder="https://..."
+                    className="w-full border-2 border-black bg-[#F4F1EA] px-3.5 py-2.5 font-mono text-xs font-bold text-black shadow-[3px_3px_0px_0px_#000] focus:outline-none"
                   />
                 )}
               </div>
 
-              {/* Предпросмотр картинки */}
               {mediaUrl && (
                 <div className="relative border-2 border-black bg-black">
-                  <img
-                    src={mediaUrl}
-                    alt="Предпросмотр мема"
-                    className="max-h-64 w-full object-contain"
-                    onError={() => setError('НЕ УДАЛОСЬ ЗАГРУЗИТЬ КАРТИНКУ ПО ССЫЛКЕ')}
-                  />
+                  <img src={mediaUrl} alt="Preview" className="max-h-64 w-full object-contain" />
                   <button
                     type="button"
                     onClick={() => setMediaUrl('')}
-                    className="absolute top-2 right-2 border-2 border-black bg-[#FF2A85] p-1 text-white shadow-[2px_2px_0px_0px_#000]"
+                    className="absolute top-2 right-2 border-2 border-black bg-[#FF2A85] p-1 text-white"
                   >
-                    <X className="h-4 w-4 stroke-[3]" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -600,16 +560,15 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black text-black uppercase shadow-[3px_3px_0px_0px_#000] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                  className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"
                 >
                   ОТМЕНА
                 </button>
                 <button
                   type="submit"
-                  className="flex items-center gap-2 border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000] transition hover:bg-[#FFB800] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                  className="flex items-center gap-2 border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000]"
                 >
-                  <Zap className="h-4 w-4 fill-black" />
-                  ОПУБЛИКОВАТЬ
+                  <Zap className="h-4 w-4 fill-black" /> ОПУБЛИКОВАТЬ
                 </button>
               </div>
             </form>
@@ -621,7 +580,7 @@ const CreateMemeModal = ({ isOpen, onClose, onPublish }) => {
 };
 
 // ============================================================================
-// 4. КАРТОЧКА МЕМА (С РЕАКЦИЯМИ И КОММЕНТАРИЯМИ)
+// 4. КАРТОЧКА МЕМА
 // ============================================================================
 
 const MemeCard = ({
@@ -640,9 +599,7 @@ const MemeCard = ({
   const handleReplyClick = (nickname) => {
     setShowComments(true);
     setCommentText(`@${nickname} `);
-    setTimeout(() => {
-      commentInputRef.current?.focus();
-    }, 50);
+    setTimeout(() => commentInputRef.current?.focus(), 50);
   };
 
   const handleCommentSubmit = (e) => {
@@ -661,10 +618,8 @@ const MemeCard = ({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      transition={{ duration: 0.2 }}
       className="border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000]"
     >
-      {/* ВЕРХ КАРТОЧКИ: Автор, время, стикер-тег */}
       <div className="flex items-center justify-between gap-3 border-b-2 border-black bg-[#F4F1EA] px-4 py-3 sm:px-5">
         <button
           onClick={() => onOpenProfile(author.id)}
@@ -673,86 +628,56 @@ const MemeCard = ({
           <img
             src={author.avatar}
             alt={author.nickname}
-            className="h-11 w-11 border-2 border-black object-cover shadow-[2px_2px_0px_0px_#000] transition-transform group-hover:-rotate-3"
+            className="h-11 w-11 border-2 border-black object-cover shadow-[2px_2px_0px_0px_#000]"
           />
           <div>
-            <span className="block font-black text-black uppercase decoration-2 underline-offset-2 group-hover:underline">
+            <span className="block font-black text-black uppercase group-hover:underline">
               {author.nickname}
             </span>
-            <span className="font-mono text-[11px] font-bold text-black/60">
-              {post.createdAt}
-            </span>
+            <span className="font-mono text-[11px] font-bold text-black/60">{post.createdAt}</span>
           </div>
         </button>
-
-        {/* Брутальный стикер с тегом */}
-        <span
-          className={`inline-block rotate-2 border-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] ${tagBadgeStyle}`}
-        >
+        <span className={`rotate-2 border-2 border-black px-2.5 py-1 font-mono text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000] ${tagBadgeStyle}`}>
           {post.tag}
         </span>
       </div>
 
-      {/* ЗАГОЛОВОК МЕМА */}
       <div className="px-4 pt-4 pb-3 sm:px-5">
-        <p className="text-base leading-snug font-black text-black sm:text-lg">
-          {post.title}
-        </p>
+        <p className="text-base leading-snug font-black text-black sm:text-lg">{post.title}</p>
       </div>
 
-      {/* ЦЕНТР: Картинка или GIF без обрезки с чёрной рамкой */}
       <div className="px-4 sm:px-5">
         <div className="flex items-center justify-center overflow-hidden border-2 border-black bg-black">
-          <img
-            src={post.mediaUrl}
-            alt={post.title}
-            loading="lazy"
-            className="max-h-[520px] w-full object-contain"
-          />
+          <img src={post.mediaUrl} alt={post.title} loading="lazy" className="max-h-[520px] w-full object-contain" />
         </div>
       </div>
 
-      {/* НИЗ: Панель реакций (тактильные кнопки с вдавливанием) */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-4 sm:px-5">
-        {/* Левая группа: Огонь-лайк, Дизлайк, Комменты */}
         <div className="flex items-center gap-2">
-          {/* Лайк / Апвоут */}
           <button
             onClick={() => onVote(post.id, 'like')}
-            className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
-              post.userVote === 'like'
-                ? 'bg-[#FFB800] text-black shadow-[3px_3px_0px_0px_#000]'
-                : 'bg-white text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#CCFF00]'
+            className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${
+              post.userVote === 'like' ? 'bg-[#FFB800] text-black' : 'bg-white text-black hover:bg-[#CCFF00]'
             }`}
           >
-            <Flame
-              className={`h-4 w-4 ${
-                post.userVote === 'like' ? 'fill-black text-black' : 'text-black'
-              }`}
-            />
+            <Flame className={`h-4 w-4 ${post.userVote === 'like' ? 'fill-black' : ''}`} />
             <span>{post.likes}</span>
           </button>
 
-          {/* Дизлайк */}
           <button
             onClick={() => onVote(post.id, 'dislike')}
-            className={`flex items-center gap-1.5 border-2 border-black px-2.5 py-1.5 font-mono text-xs font-black transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
-              post.userVote === 'dislike'
-                ? 'bg-[#3B82F6] text-white shadow-[3px_3px_0px_0px_#000]'
-                : 'bg-white text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#F4F1EA]'
+            className={`flex items-center gap-1.5 border-2 border-black px-2.5 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${
+              post.userVote === 'dislike' ? 'bg-[#3B82F6] text-white' : 'bg-white text-black hover:bg-[#F4F1EA]'
             }`}
           >
             <ThumbsDown className="h-3.5 w-3.5" />
             {post.dislikes > 0 && <span>{post.dislikes}</span>}
           </button>
 
-          {/* Кнопка комментариев */}
           <button
             onClick={() => setShowComments((prev) => !prev)}
-            className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
-              showComments
-                ? 'bg-black text-[#CCFF00] shadow-[3px_3px_0px_0px_#FF2A85]'
-                : 'bg-white text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#F4F1EA]'
+            className={`flex items-center gap-1.5 border-2 border-black px-3 py-1.5 font-mono text-xs font-black shadow-[3px_3px_0px_0px_#000] ${
+              showComments ? 'bg-black text-[#CCFF00]' : 'bg-white text-black hover:bg-[#F4F1EA]'
             }`}
           >
             <MessageCircle className="h-4 w-4" />
@@ -760,7 +685,6 @@ const MemeCard = ({
           </button>
         </div>
 
-        {/* Правая группа: Быстрые реакции-эмодзи */}
         <div className="flex flex-wrap items-center gap-1.5">
           {QUICK_EMOJIS.map((emoji) => {
             const count = post.emojis?.[emoji] || 0;
@@ -769,13 +693,11 @@ const MemeCard = ({
               <button
                 key={emoji}
                 onClick={() => onToggleEmoji(post.id, emoji)}
-                className={`flex items-center gap-1 border-2 border-black px-2 py-1 font-mono text-xs font-black transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none ${
-                  isReacted
-                    ? 'bg-[#FF2A85] text-white shadow-[2px_2px_0px_0px_#000]'
-                    : 'bg-[#F4F1EA] text-black shadow-[2px_2px_0px_0px_#000] hover:bg-[#CCFF00]'
+                className={`flex items-center gap-1 border-2 border-black px-2 py-1 font-mono text-xs font-black shadow-[2px_2px_0px_0px_#000] ${
+                  isReacted ? 'bg-[#FF2A85] text-white' : 'bg-[#F4F1EA] text-black hover:bg-[#CCFF00]'
                 }`}
               >
-                <span className="text-sm leading-none">{emoji}</span>
+                <span className="text-sm">{emoji}</span>
                 {count > 0 && <span>{count}</span>}
               </button>
             );
@@ -783,14 +705,12 @@ const MemeCard = ({
         </div>
       </div>
 
-      {/* БЛОК КОММЕНТАРИЕВ */}
       <AnimatePresence initial={false}>
         {showComments && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
             className="overflow-hidden border-t-2 border-black bg-[#F4F1EA]"
           >
             <div className="space-y-3 p-4 sm:px-5">
@@ -811,36 +731,33 @@ const MemeCard = ({
                         key={comment.id}
                         className="flex items-start gap-2.5 border-2 border-black bg-white p-2.5 shadow-[3px_3px_0px_0px_#000]"
                       >
-                        <button
-                          onClick={() => onOpenProfile(commentAuthor.id)}
-                          className="shrink-0 focus:outline-none"
-                        >
+                        <button onClick={() => onOpenProfile(commentAuthor.id)}>
                           <img
                             src={commentAuthor.avatar}
                             alt={commentAuthor.nickname}
                             className="h-8 w-8 border-2 border-black object-cover"
                           />
                         </button>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-baseline justify-between gap-2">
                             <button
                               onClick={() => onOpenProfile(commentAuthor.id)}
-                              className="text-xs font-black text-black uppercase hover:bg-[#CCFF00]"
+                              className="font-black text-xs uppercase hover:underline truncate"
                             >
                               {commentAuthor.nickname}
                             </button>
-                            <span className="font-mono text-[10px] font-bold text-black/55">
+                            <span className="font-mono text-[10px] text-black/50 shrink-0">
                               {comment.createdAt}
                             </span>
                           </div>
-                          <p className="mt-1 text-xs leading-relaxed font-medium break-words text-black sm:text-sm">
+                          <p className="mt-0.5 text-xs font-bold text-black break-words">
                             {comment.text}
                           </p>
                           <button
                             onClick={() => handleReplyClick(commentAuthor.nickname)}
-                            className="mt-1.5 inline-block border border-black bg-[#CCFF00] px-1.5 py-0.5 font-mono text-[10px] font-black text-black uppercase hover:bg-[#FFB800]"
+                            className="mt-1 font-mono text-[10px] font-black uppercase text-[#3B82F6] hover:underline"
                           >
-                            ↪ ОТВЕТИТЬ
+                            [ответить]
                           </button>
                         </div>
                       </div>
@@ -849,20 +766,18 @@ const MemeCard = ({
                 </div>
               )}
 
-              {/* Форма добавления нового комментария */}
-              <form onSubmit={handleCommentSubmit} className="flex items-center gap-2 pt-1">
+              <form onSubmit={handleCommentSubmit} className="flex gap-2 pt-1">
                 <input
                   ref={commentInputRef}
                   type="text"
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  placeholder="ВКИНУТЬ КОММЕНТ..."
-                  className="w-full border-2 border-black bg-white px-3.5 py-2 font-mono text-xs font-bold text-black placeholder-black/40 shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
+                  placeholder="НАПИСАТЬ КОММЕНТ..."
+                  className="flex-1 border-2 border-black bg-white px-3 py-2 font-mono text-xs font-bold text-black placeholder-black/40 shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
                 />
                 <button
                   type="submit"
-                  disabled={!commentText.trim()}
-                  className="flex h-9 w-10 shrink-0 items-center justify-center border-2 border-black bg-[#FF2A85] text-white shadow-[3px_3px_0px_0px_#000] transition active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-40"
+                  className="flex items-center justify-center border-2 border-black bg-[#CCFF00] px-3.5 py-2 font-mono text-xs font-black text-black shadow-[3px_3px_0px_0px_#000] hover:bg-[#FFB800]"
                 >
                   <Send className="h-4 w-4" />
                 </button>
@@ -876,30 +791,27 @@ const MemeCard = ({
 };
 
 // ============================================================================
-// 5. СТРАНИЦА ПРОФИЛЯ ПОЛЬЗОВАТЕЛЯ / ДРУГА
+// 5. ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ
 // ============================================================================
 
-const UserProfileView = ({
+const ProfileView = ({
   profileUser,
-  isOwnProfile,
-  userPosts,
+  currentUser,
+  posts,
   users,
   onBack,
   onUpdateProfile,
-  onResetDemo,
   onOpenProfile,
   onVote,
   onToggleEmoji,
   onAddComment
 }) => {
+  const isMe = profileUser.id === currentUser.id;
   const [isEditing, setIsEditing] = useState(false);
   const [nickname, setNickname] = useState(profileUser.nickname);
   const [status, setStatus] = useState(profileUser.status);
   const [avatar, setAvatar] = useState(profileUser.avatar);
   const [banner, setBanner] = useState(profileUser.banner);
-
-  const avatarFileRef = useRef(null);
-  const bannerFileRef = useRef(null);
 
   useEffect(() => {
     setNickname(profileUser.nickname);
@@ -909,258 +821,158 @@ const UserProfileView = ({
     setIsEditing(false);
   }, [profileUser]);
 
-  const totalFires = useMemo(
-    () => userPosts.reduce((acc, p) => acc + p.likes, 0),
-    [userPosts]
-  );
+  const userPosts = useMemo(() => {
+    return posts.filter((p) => p.authorId === profileUser.id);
+  }, [posts, profileUser.id]);
 
-  const handleImageUpload = (e, setter) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setter(reader.result);
-    reader.readAsDataURL(file);
-  };
+  const totalLikes = useMemo(() => {
+    return userPosts.reduce((acc, p) => acc + p.likes, 0);
+  }, [userPosts]);
 
-  const handleSaveProfile = (e) => {
+  const handleSave = (e) => {
     e.preventDefault();
     if (!nickname.trim()) return;
     onUpdateProfile({
       ...profileUser,
       nickname: nickname.trim(),
-      status: status.trim() || 'Без статуса',
+      status: status.trim(),
       avatar,
       banner
     });
     setIsEditing(false);
   };
 
-  const isBannerImage =
-    banner.startsWith('http') || banner.startsWith('data:image');
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      className="space-y-6"
-    >
-      {/* Кнопка возврата в ленту */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000] transition hover:bg-[#CCFF00] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-        >
-          <ArrowLeft className="h-4 w-4 stroke-[3]" />
-          НАЗАД В ЛЕНТУ
-        </button>
+    <div className="mx-auto max-w-2xl px-3 py-4 sm:px-6">
+      <button
+        onClick={onBack}
+        className="mb-4 flex items-center gap-2 border-2 border-black bg-white px-3.5 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000] hover:bg-[#CCFF00]"
+      >
+        <ArrowLeft className="h-4 w-4" /> К ЛЕНТЕ МЕМОВ
+      </button>
 
-        {isOwnProfile && (
-          <button
-            onClick={onResetDemo}
-            title="Вернуть исходные мемы и профили"
-            className="inline-flex items-center gap-1.5 border-2 border-black bg-white px-3 py-2 font-mono text-xs font-black text-black uppercase shadow-[3px_3px_0px_0px_#000] transition hover:bg-[#FF2A85] hover:text-white active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-            СБРОС ДЕМО
-          </button>
-        )}
-      </div>
-
-      {/* КАРТОЧКА ПРОФИЛЯ С БАННЕРОМ */}
-      <div className="overflow-hidden border-2 border-black bg-white shadow-[6px_6px_0px_0px_#000]">
-        {/* Баннер профиля */}
+      {/* Карточка профиля */}
+      <div className="overflow-hidden border-4 border-black bg-white shadow-[8px_8px_0px_0px_#000]">
         <div
-          className="relative h-36 w-full border-b-2 border-black bg-cover bg-center sm:h-48"
-          style={
-            isBannerImage
-              ? { backgroundImage: `url(${banner})` }
-              : { background: banner, backgroundSize: banner.includes('radial') ? '16px 16px' : 'auto' }
-          }
+          className="h-32 w-full border-b-4 border-black sm:h-44"
+          style={{ background: banner }}
         />
 
-        {/* Основная информация */}
-        <div className="relative px-5 pb-6 sm:px-7">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            {/* Аватар */}
-            <div className="-mt-14 flex items-end gap-4 sm:-mt-16">
-              <img
-                src={isEditing ? avatar : profileUser.avatar}
-                alt={profileUser.nickname}
-                className="h-24 w-24 border-4 border-black bg-white object-cover shadow-[4px_4px_0px_0px_#000] sm:h-28 sm:w-28"
-              />
-            </div>
-
-            {/* Кнопка редактирования */}
-            {isOwnProfile && !isEditing && (
+        <div className="relative px-5 pb-5 pt-0">
+          <div className="flex flex-wrap items-end justify-between gap-4 -mt-12 mb-4">
+            <img
+              src={avatar}
+              alt={profileUser.nickname}
+              className="h-24 w-24 border-4 border-black object-cover bg-white shadow-[4px_4px_0px_0px_#000] sm:h-28 sm:w-28"
+            />
+            {isMe && !isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
-                className="inline-flex items-center justify-center gap-2 self-start border-2 border-black bg-[#CCFF00] px-4 py-2 font-mono text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000] transition hover:bg-[#FFB800] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none sm:self-auto"
+                className="flex items-center gap-1.5 border-2 border-black bg-[#CCFF00] px-4 py-2 font-mono text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800]"
               >
-                <Edit3 className="h-4 w-4" />
-                НАСТРОИТЬ ПРОФИЛЬ
+                <Edit3 className="h-4 w-4" /> РЕДАКТИРОВАТЬ ПРОФИЛЬ
               </button>
             )}
           </div>
 
           {!isEditing ? (
-            <div className="mt-4">
-              <h1 className="inline-block border-2 border-black bg-[#CCFF00] px-2.5 py-0.5 text-2xl font-black tracking-tight text-black uppercase shadow-[3px_3px_0px_0px_#000] sm:text-3xl">
+            <div>
+              <h1 className="text-2xl font-black uppercase tracking-tight text-black sm:text-3xl">
                 {profileUser.nickname}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed font-bold text-black/85 sm:text-base">
-                {profileUser.status}
+              <p className="mt-1 font-mono text-xs font-bold text-black/70 flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5" /> В тусовке с {profileUser.joinedDate}
               </p>
+              <div className="mt-3 border-2 border-black bg-[#F4F1EA] p-3 text-sm font-bold text-black shadow-[3px_3px_0px_0px_#000]">
+                {profileUser.status}
+              </div>
 
-              {/* Брутальные плашки статистики */}
-              <div className="mt-5 flex flex-wrap gap-3">
-                <div className="flex items-center gap-2 border-2 border-black bg-[#F4F1EA] px-3.5 py-2 shadow-[3px_3px_0px_0px_#000]">
-                  <Layers className="h-4 w-4 text-black" />
-                  <span className="font-mono text-sm font-black text-black">{userPosts.length}</span>
-                  <span className="font-mono text-xs font-bold text-black/70 uppercase">мемов</span>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]">
+                  <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-black/60 uppercase">
+                    <Layers className="h-4 w-4 text-[#3B82F6]" /> Всего мемов
+                  </div>
+                  <div className="mt-1 text-2xl font-black">{userPosts.length}</div>
                 </div>
-                <div className="flex items-center gap-2 border-2 border-black bg-[#FFB800] px-3.5 py-2 shadow-[3px_3px_0px_0px_#000]">
-                  <Flame className="h-4 w-4 fill-black text-black" />
-                  <span className="font-mono text-sm font-black text-black">{totalFires}</span>
-                  <span className="font-mono text-xs font-bold text-black uppercase">огоньков</span>
-                </div>
-                <div className="flex items-center gap-2 border-2 border-black bg-[#3B82F6] px-3.5 py-2 text-white shadow-[3px_3px_0px_0px_#000]">
-                  <Calendar className="h-4 w-4" />
-                  <span className="font-mono text-xs font-black uppercase">
-                    С НАМИ: {profileUser.joinedDate}
-                  </span>
+                <div className="border-2 border-black bg-white p-3 shadow-[3px_3px_0px_0px_#000]">
+                  <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-black/60 uppercase">
+                    <Award className="h-4 w-4 text-[#FF2A85]" /> Суммарный огонь
+                  </div>
+                  <div className="mt-1 text-2xl font-black">{totalLikes}</div>
                 </div>
               </div>
             </div>
           ) : (
-            /* ФОРМА РЕДАКТИРОВАНИЯ СВОЕГО ПРОФИЛЯ */
-            <form onSubmit={handleSaveProfile} className="mt-5 space-y-5 border-t-2 border-black pt-5">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block font-mono text-xs font-black text-black uppercase">
-                    НИКНЕЙМ
-                  </label>
-                  <input
-                    type="text"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    className="w-full border-2 border-black bg-[#F4F1EA] px-3.5 py-2 text-sm font-bold text-black shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block font-mono text-xs font-black text-black uppercase">
-                    СТАТУС В ПРОФИЛЕ
-                  </label>
-                  <input
-                    type="text"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full border-2 border-black bg-[#F4F1EA] px-3.5 py-2 text-sm font-bold text-black shadow-[3px_3px_0px_0px_#000] focus:bg-[#CCFF00]/25 focus:outline-none"
-                  />
-                </div>
+            <form onSubmit={handleSave} className="space-y-4 pt-2">
+              <h2 className="font-mono text-sm font-black uppercase text-black">
+                🛠 НАСТРОЙКА ПРОФИЛЯ
+              </h2>
+
+              <div>
+                <label className="block font-mono text-xs font-bold uppercase mb-1">Никнейм</label>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                  className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
+                />
               </div>
 
-              {/* Выбор аватарки */}
               <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="font-mono text-xs font-black text-black uppercase">
-                    АВАТАРКА (ГОТОВЫЕ ИЛИ СВОЯ)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => avatarFileRef.current?.click()}
-                    className="inline-flex items-center gap-1 border border-black bg-[#CCFF00] px-2 py-0.5 font-mono text-xs font-black text-black uppercase hover:bg-[#FFB800]"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    ЗАГРУЗИТЬ ФОТО
-                  </button>
-                  <input
-                    ref={avatarFileRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, setAvatar)}
-                    className="hidden"
-                  />
-                </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                  {AVATAR_PRESETS.map((presetUrl, idx) => (
-                    <button
-                      type="button"
-                      key={idx}
-                      onClick={() => setAvatar(presetUrl)}
-                      className={`h-12 w-12 overflow-hidden border-2 border-black transition ${
-                        avatar === presetUrl
-                          ? '-translate-y-1 shadow-[3px_3px_0px_0px_#FF2A85]'
-                          : 'opacity-75 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={presetUrl} alt="" className="h-full w-full object-cover" />
-                    </button>
-                  ))}
-                </div>
+                <label className="block font-mono text-xs font-bold uppercase mb-1">Статус</label>
+                <input
+                  type="text"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="w-full border-2 border-black bg-[#F4F1EA] p-2.5 text-sm font-bold shadow-[3px_3px_0px_0px_#000] focus:outline-none"
+                />
               </div>
 
-              {/* Выбор баннера */}
               <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="font-mono text-xs font-black text-black uppercase">
-                    ОБЛОЖКА (БАННЕР ПРОФИЛЯ)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => bannerFileRef.current?.click()}
-                    className="inline-flex items-center gap-1 border border-black bg-[#CCFF00] px-2 py-0.5 font-mono text-xs font-black text-black uppercase hover:bg-[#FFB800]"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    ЗАГРУЗИТЬ БАННЕР
-                  </button>
-                  <input
-                    ref={bannerFileRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, setBanner)}
-                    className="hidden"
-                  />
-                </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {BANNER_PRESETS.map((grad, idx) => (
-                    <button
-                      type="button"
-                      key={idx}
-                      onClick={() => setBanner(grad)}
-                      style={{
-                        background: grad,
-                        backgroundSize: grad.includes('radial') ? '12px 12px' : 'auto'
-                      }}
-                      className={`h-10 border-2 border-black transition ${
-                        banner === grad
-                          ? '-translate-y-1 shadow-[3px_3px_0px_0px_#000]'
-                          : 'opacity-80 hover:opacity-100'
+                <label className="block font-mono text-xs font-bold uppercase mb-1">Выбери аватар</label>
+                <div className="flex flex-wrap gap-2">
+                  {AVATAR_PRESETS.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt="preset"
+                      onClick={() => setAvatar(url)}
+                      className={`h-12 w-12 cursor-pointer border-2 border-black object-cover ${
+                        avatar === url ? 'ring-4 ring-[#FF2A85]' : ''
                       }`}
                     />
                   ))}
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2.5 border-t-2 border-black pt-4">
+              <div>
+                <label className="block font-mono text-xs font-bold uppercase mb-1">Выбери баннер</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {BANNER_PRESETS.map((b, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setBanner(b)}
+                      className={`h-12 cursor-pointer border-2 border-black ${
+                        banner === b ? 'ring-4 ring-[#CCFF00]' : ''
+                      }`}
+                      style={{ background: b }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    setNickname(profileUser.nickname);
-                    setStatus(profileUser.status);
-                    setAvatar(profileUser.avatar);
-                    setBanner(profileUser.banner);
-                    setIsEditing(false);
-                  }}
-                  className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black text-black uppercase shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                  onClick={() => setIsEditing(false)}
+                  className="border-2 border-black bg-white px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"
                 >
                   ОТМЕНА
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black text-black uppercase shadow-[4px_4px_0px_0px_#000] hover:bg-[#FFB800] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+                  className="border-2 border-black bg-[#CCFF00] px-5 py-2 font-mono text-xs font-black uppercase shadow-[4px_4px_0px_0px_#000]"
                 >
-                  <Check className="h-4 w-4 stroke-[3]" />
                   СОХРАНИТЬ
                 </button>
               </div>
@@ -1169,20 +981,14 @@ const UserProfileView = ({
         </div>
       </div>
 
-      {/* ВСЕ МЕМЫ АВТОРА ВНИЗУ ПРОФИЛЯ */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 border-2 border-black bg-black px-4 py-2.5 text-white shadow-[4px_4px_0px_0px_#FF2A85]">
-          <Award className="h-5 w-5 text-[#CCFF00]" />
-          <h2 className="font-mono text-sm font-black uppercase sm:text-base">
-            МЕМЫ ОТ {profileUser.nickname} [{userPosts.length}]
-          </h2>
-        </div>
-
+      {/* Лента мемов этого пользователя внизу профиля */}
+      <div className="mt-8">
+        <h3 className="mb-4 border-l-4 border-[#FF2A85] pl-3 font-mono text-lg font-black uppercase text-black">
+          МЕМЫ ОТ {profileUser.nickname} ({userPosts.length})
+        </h3>
         {userPosts.length === 0 ? (
-          <div className="border-2 border-black bg-white p-10 text-center shadow-[4px_4px_0px_0px_#000]">
-            <p className="font-mono text-xs font-black text-black/70 uppercase">
-              ЭТОТ ПОЛЬЗОВАТЕЛЬ ПОКА НЕ ЗАКИНУЛ НИ ОДНОГО МЕМА 😴
-            </p>
+          <div className="border-2 border-dashed border-black bg-white p-8 text-center font-mono text-xs font-bold text-black/60 uppercase">
+            У ЭТОГО КЕНТА ЕЩЁ НЕТ МЕМОВ
           </div>
         ) : (
           <div className="space-y-6">
@@ -1201,113 +1007,87 @@ const UserProfileView = ({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
 // ============================================================================
-// 6. ГЛАВНЫЙ КОМПОНЕНТ ПРИЛОЖЕНИЯ (APP)
+// 6. ГЛАВНОЕ ПРИЛОЖЕНИЕ (APP)
 // ============================================================================
 
 export default function App() {
   const [users, setUsers] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.USERS);
-      return saved ? JSON.parse(saved) : INITIAL_USERS;
-    } catch {
-      return INITIAL_USERS;
-    }
+    const saved = localStorage.getItem(STORAGE_KEYS.USERS);
+    return saved ? JSON.parse(saved) : INITIAL_USERS;
   });
 
   const [posts, setPosts] = useState(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.POSTS);
-      return saved ? JSON.parse(saved) : INITIAL_POSTS;
-    } catch {
-      return INITIAL_POSTS;
-    }
+    const saved = localStorage.getItem(STORAGE_KEYS.POSTS);
+    return saved ? JSON.parse(saved) : INITIAL_POSTS;
   });
 
-  const currentUserId = 'user_me';
-  const currentUser = users[currentUserId] || INITIAL_USERS.user_me;
-
-  const [activeView, setActiveView] = useState('feed');
-  const [viewedProfileId, setViewedProfileId] = useState(currentUserId);
+  const [currentUserId, setCurrentUserId] = useState('user_me');
+  const [activeView, setActiveView] = useState('feed'); // 'feed' | 'profile'
+  const [profileTargetId, setProfileTargetId] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('#все');
-
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
-    } catch (err) {
-      console.error('Ошибка сохранения пользователей:', err);
-    }
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
   }, [users]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
-    } catch (err) {
-      console.error('Ошибка сохранения постов:', err);
-    }
+    localStorage.setItem(STORAGE_KEYS.POSTS, JSON.stringify(posts));
   }, [posts]);
 
-  const handleOpenProfile = (userId) => {
-    setViewedProfileId(userId);
-    setActiveView('profile');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  const currentUser = users[currentUserId] || users['user_me'];
 
-  const handleGoHome = () => {
-    setActiveView('feed');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handlePublishMeme = ({ title, tag, mediaUrl }) => {
+  const handlePublishMeme = (newPostData) => {
     const newPost = {
-      id: `post_${Date.now()}`,
-      authorId: currentUserId,
-      title,
-      tag,
-      mediaUrl,
+      id: 'post_' + Date.now(),
+      authorId: currentUser.id,
+      title: newPostData.title,
+      tag: newPostData.tag,
+      mediaUrl: newPostData.mediaUrl,
       createdAt: 'ТОЛЬКО ЧТО',
       likes: 1,
       dislikes: 0,
       userVote: 'like',
-      emojis: { '😂': 0, '💀': 0, '🔥': 1, '🤡': 0 },
+      emojis: { '🔥': 1 },
       userEmojis: ['🔥'],
       comments: []
     };
-    setPosts((prev) => [newPost, ...prev]);
+    setPosts([newPost, ...posts]);
     setActiveView('feed');
-    setSelectedTag('#все');
   };
 
-  const handleVote = (postId, voteType) => {
+  const handleVote = (postId, type) => {
     setPosts((prev) =>
       prev.map((post) => {
         if (post.id !== postId) return post;
-
         let likes = post.likes;
         let dislikes = post.dislikes;
         let userVote = post.userVote;
 
-        if (userVote === voteType) {
-          if (voteType === 'like') likes = Math.max(0, likes - 1);
-          if (voteType === 'dislike') dislikes = Math.max(0, dislikes - 1);
+        if (userVote === type) {
+          if (type === 'like') likes--;
+          if (type === 'dislike') dislikes--;
           userVote = null;
         } else {
-          if (userVote === 'like') likes = Math.max(0, likes - 1);
-          if (userVote === 'dislike') dislikes = Math.max(0, dislikes - 1);
+          if (userVote === 'like') likes--;
+          if (userVote === 'dislike') dislikes--;
 
-          if (voteType === 'like') likes += 1;
-          if (voteType === 'dislike') dislikes += 1;
-          userVote = voteType;
+          if (type === 'like') {
+            likes++;
+            userVote = 'like';
+          }
+          if (type === 'dislike') {
+            dislikes++;
+            userVote = 'dislike';
+          }
         }
-
         return { ...post, likes, dislikes, userVote };
       })
     );
@@ -1317,37 +1097,34 @@ export default function App() {
     setPosts((prev) =>
       prev.map((post) => {
         if (post.id !== postId) return post;
-        const alreadyReacted = post.userEmojis.includes(emoji);
-        const currentCount = post.emojis[emoji] || 0;
+        const emojis = { ...(post.emojis || {}) };
+        const userEmojis = [...(post.userEmojis || [])];
+        const hasReacted = userEmojis.includes(emoji);
 
-        return {
-          ...post,
-          emojis: {
-            ...post.emojis,
-            [emoji]: alreadyReacted ? Math.max(0, currentCount - 1) : currentCount + 1
-          },
-          userEmojis: alreadyReacted
-            ? post.userEmojis.filter((e) => e !== emoji)
-            : [...post.userEmojis, emoji]
-        };
+        if (hasReacted) {
+          userEmojis.splice(userEmojis.indexOf(emoji), 1);
+          emojis[emoji] = Math.max(0, (emojis[emoji] || 1) - 1);
+        } else {
+          userEmojis.push(emoji);
+          emojis[emoji] = (emojis[emoji] || 0) + 1;
+        }
+        return { ...post, emojis, userEmojis };
       })
     );
   };
 
   const handleAddComment = (postId, text) => {
-    const newComment = {
-      id: `c_${Date.now()}`,
-      authorId: currentUserId,
-      text,
-      createdAt: 'ТОЛЬКО ЧТО'
-    };
-
     setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? { ...post, comments: [...post.comments, newComment] }
-          : post
-      )
+      prev.map((post) => {
+        if (post.id !== postId) return post;
+        const newComment = {
+          id: 'c_' + Date.now(),
+          authorId: currentUser.id,
+          text,
+          createdAt: 'ТОЛЬКО ЧТО'
+        };
+        return { ...post, comments: [...post.comments, newComment] };
+      })
     );
   };
 
@@ -1358,146 +1135,117 @@ export default function App() {
     }));
   };
 
-  const handleResetDemo = () => {
-    setUsers(INITIAL_USERS);
-    setPosts(INITIAL_POSTS);
-    localStorage.removeItem(STORAGE_KEYS.USERS);
-    localStorage.removeItem(STORAGE_KEYS.POSTS);
-  };
-
   const filteredPosts = useMemo(() => {
     return posts.filter((post) => {
+      const author = users[post.authorId];
+      const matchesSearch =
+        searchQuery.trim() === '' ||
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (author && author.nickname.toLowerCase().includes(searchQuery.toLowerCase()));
+
       const matchesTag = selectedTag === '#все' || post.tag === selectedTag;
-      if (!matchesTag) return false;
 
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      const authorName = (users[post.authorId]?.nickname || '').toLowerCase();
-      return (
-        post.title.toLowerCase().includes(q) ||
-        post.tag.toLowerCase().includes(q) ||
-        authorName.includes(q)
-      );
+      return matchesSearch && matchesTag;
     });
-  }, [posts, selectedTag, searchQuery, users]);
-
-  const profileUser = users[viewedProfileId] || currentUser;
-  const profilePosts = useMemo(
-    () => posts.filter((p) => p.authorId === profileUser.id),
-    [posts, profileUser.id]
-  );
+  }, [posts, users, searchQuery, selectedTag]);
 
   return (
-    <div className="min-h-screen text-black selection:bg-[#FF2A85] selection:text-white">
-      {/* Газетный растровый фон */}
+    <div className="min-h-screen text-black selection:bg-[#CCFF00] selection:text-black font-sans pb-12">
       <BrutalPaperBackground />
 
-      {/* Брутальная шапка с бегущей строкой */}
       <BrutalHeader
         currentUser={currentUser}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         selectedTag={selectedTag}
         setSelectedTag={setSelectedTag}
-        onOpenCreateModal={() => setIsCreateOpen(true)}
-        onOpenProfile={handleOpenProfile}
-        onGoHome={handleGoHome}
+        onOpenCreateModal={() => setIsCreateModalOpen(true)}
+        onOpenProfile={(userId) => {
+          setProfileTargetId(userId);
+          setActiveView('profile');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onGoHome={() => {
+          setActiveView('feed');
+          setSearchQuery('');
+          setSelectedTag('#все');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         activeView={activeView}
       />
 
-      {/* Основной контейнер контента */}
-      <main className="mx-auto max-w-2xl px-3 pt-6 pb-20 sm:px-4 sm:pt-8">
-        <AnimatePresence mode="wait">
-          {activeView === 'feed' ? (
-            <motion.div
-              key="feed"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
-            >
-              {/* Панель друзей (Брутальные стикеры кентов) */}
-              <div className="flex items-center gap-2.5 overflow-x-auto border-2 border-black bg-white px-3.5 py-2.5 shadow-[4px_4px_0px_0px_#000] no-scrollbar">
-                <span className="shrink-0 bg-black px-2 py-1 font-mono text-[11px] font-black text-[#CCFF00] uppercase">
-                  КЕНТЫ:
-                </span>
-                {Object.values(users).map((friend) => (
-                  <button
-                    key={friend.id}
-                    onClick={() => handleOpenProfile(friend.id)}
-                    className="flex shrink-0 items-center gap-2 border-2 border-black bg-[#F4F1EA] py-1 pr-2.5 pl-1 font-mono text-xs font-black text-black uppercase shadow-[2px_2px_0px_0px_#000] transition hover:bg-[#CCFF00] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                  >
-                    <img
-                      src={friend.avatar}
-                      alt={friend.nickname}
-                      className="h-6 w-6 border border-black object-cover"
-                    />
-                    <span>{friend.nickname}</span>
-                  </button>
-                ))}
+      <main className="mx-auto max-w-2xl px-3 py-6 sm:px-6">
+        {activeView === 'feed' ? (
+          <div>
+            {filteredPosts.length === 0 ? (
+              <div className="border-4 border-black bg-white p-10 text-center shadow-[6px_6px_0px_0px_#000]">
+                <p className="font-mono text-sm font-black uppercase text-black">
+                  НИЧЕГО НЕ НАШЛИ ПО ТВОЕМУ ЗАПРОСУ 🕵️‍♂️
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setSelectedTag('#все');
+                  }}
+                  className="mt-4 border-2 border-black bg-[#CCFF00] px-4 py-2 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]"
+                >
+                  СБРОСИТЬ ФИЛЬТРЫ
+                </button>
               </div>
-
-              {/* Лента карточек мемов */}
-              {filteredPosts.length > 0 ? (
-                <div className="space-y-7">
-                  {filteredPosts.map((post) => {
-                    const author = users[post.authorId] || currentUser;
-                    return (
-                      <MemeCard
-                        key={post.id}
-                        post={post}
-                        author={author}
-                        users={users}
-                        onOpenProfile={handleOpenProfile}
-                        onVote={handleVote}
-                        onToggleEmoji={handleToggleEmoji}
-                        onAddComment={handleAddComment}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="border-2 border-black bg-white p-10 text-center shadow-[6px_6px_0px_0px_#000]">
-                  <Hash className="mx-auto mb-3 h-10 w-10 text-black" />
-                  <h3 className="text-lg font-black text-black uppercase">МЕМОВ НЕ НАЙДЕНО</h3>
-                  <p className="mt-1 font-mono text-xs font-bold text-black/65">
-                    ПОПРОБУЙ СБРОСИТЬ ФИЛЬТР ИЛИ ЗАКИНЬ СВОЙ МЕМ ПО ЭТОЙ ТЕМЕ!
-                  </p>
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedTag('#все');
-                    }}
-                    className="mt-4 border-2 border-black bg-[#CCFF00] px-4 py-2 font-mono text-xs font-black text-black uppercase shadow-[3px_3px_0px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                  >
-                    ПОКАЗАТЬ ВСЕ МЕМЫ
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          ) : (
-            <UserProfileView
-              key={`profile_${profileUser.id}`}
-              profileUser={profileUser}
-              isOwnProfile={profileUser.id === currentUserId}
-              userPosts={profilePosts}
-              users={users}
-              onBack={handleGoHome}
-              onUpdateProfile={handleUpdateProfile}
-              onResetDemo={handleResetDemo}
-              onOpenProfile={handleOpenProfile}
-              onVote={handleVote}
-              onToggleEmoji={handleToggleEmoji}
-              onAddComment={handleAddComment}
-            />
-          )}
-        </AnimatePresence>
+            ) : (
+              <div className="space-y-6">
+                {filteredPosts.map((post) => {
+                  const author = users[post.authorId] || {
+                    id: post.authorId,
+                    nickname: 'Аноним',
+                    avatar: AVATAR_PRESETS[0]
+                  };
+                  return (
+                    <MemeCard
+                      key={post.id}
+                      post={post}
+                      author={author}
+                      users={users}
+                      onOpenProfile={(userId) => {
+                        setProfileTargetId(userId);
+                        setActiveView('profile');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      onVote={handleVote}
+                      onToggleEmoji={handleToggleEmoji}
+                      onAddComment={handleAddComment}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : (
+          <ProfileView
+            profileUser={users[profileTargetId] || currentUser}
+            currentUser={currentUser}
+            posts={posts}
+            users={users}
+            onBack={() => {
+              setActiveView('feed');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onUpdateProfile={handleUpdateProfile}
+            onOpenProfile={(userId) => {
+              setProfileTargetId(userId);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onVote={handleVote}
+            onToggleEmoji={handleToggleEmoji}
+            onAddComment={handleAddComment}
+          />
+        )}
       </main>
 
-      {/* Модальное окно создания мема */}
       <CreateMemeModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
         onPublish={handlePublishMeme}
       />
     </div>
