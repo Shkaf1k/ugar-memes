@@ -34,15 +34,16 @@
         const { useState, useEffect, useMemo, useRef } = React;
 
         // ==========================================
-        // НАСТРОЙКА FIREBASE (Вставь свои ключи из консоли Firebase)
+        // НАСТРОЙКА FIREBASE (Твои ключи)
         // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyYOUR_API_KEY_HERE",
-            authDomain: "your-app.firebaseapp.com",
-            projectId: "your-app-id",
-            storageBucket: "your-app.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123:web:abc"
+            apiKey: "AIzaSyBpsF7DixmnGC6PjrSUmrHPTqHj5JttOBk",
+            authDomain: "ugar-memes.firebaseapp.com",
+            projectId: "ugar-memes",
+            storageBucket: "ugar-memes.firebasestorage.app",
+            messagingSenderId: "683351902119",
+            appId: "1:683351902119:web:07a5d6e18d963031399882",
+            measurementId: "G-EP1JZDYYJ5"
         };
 
         if (!firebase.apps.length) {
@@ -66,7 +67,7 @@
         ];
 
         // Экран Авторизации / Регистрации
-        function AuthScreen({ onLoginSuccess }) {
+        function AuthScreen() {
             const [isRegister, setIsRegister] = useState(false);
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
@@ -85,7 +86,6 @@
                             throw new Error('Введи никнейм!');
                         }
                         const res = await auth.createUserWithEmailAndPassword(email, password);
-                        // Сохраняем ник в Firestore
                         await db.collection('users').doc(res.user.uid).set({
                             id: res.user.uid,
                             nickname: nickname.trim(),
@@ -137,7 +137,7 @@
                             <div>
                                 <label className="block font-mono text-xs font-black uppercase mb-1">Email</label>
                                 <input 
-                                    type="email5" 
+                                    type="email" 
                                     value={email} 
                                     onChange={e => setEmail(e.target.value)} 
                                     placeholder="mail@example.com"
@@ -191,23 +191,19 @@
             const [selectedTag, setSelectedTag] = useState('#все');
             const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-            // Поля создания поста
             const [newTitle, setNewTitle] = useState('');
             const [newTag, setNewTag] = useState('#жиза');
             const [newMedia, setNewMedia] = useState('');
 
-            // Следим за статусом авторизации Firebase
             useEffect(() => {
                 const unsubscribe = auth.onAuthStateChanged(async (user) => {
                     setFirebaseUser(user);
                     if (user) {
-                        // Загружаем профиль из Firestore
                         const docRef = db.collection('users').doc(user.uid);
                         const doc = await docRef.get();
                         if (doc.exists) {
                             setCurrentUserProfile(doc.data());
                         } else {
-                            // Если профиля нет, создаем базовый
                             const basicProfile = {
                                 id: user.uid,
                                 nickname: user.email.split('@')[0],
@@ -226,13 +222,11 @@
                 return () => unsubscribe();
             }, []);
 
-            // Загружаем посты из Firestore в реальном времени
             useEffect(() => {
                 const unsubscribe = db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
                     const loadedPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     setPosts(loadedPosts);
                 });
-                // Загружаем всех пользователей для отображения аватарок в постах
                 const unsubUsers = db.collection('users').onSnapshot(snapshot => {
                     const map = {};
                     snapshot.docs.forEach(doc => {
@@ -309,7 +303,6 @@
                         <div className="absolute inset-0 bg-[#F4F1EA]/75" />
                     </div>
 
-                    {/* Шапка */}
                     <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
                         <div className="mx-auto max-w-4xl px-3 py-3 sm:px-6 flex flex-wrap items-center justify-between gap-3">
                             <button onClick={() => setActiveView('feed')} className="flex items-center gap-3 text-left focus:outline-none">
@@ -344,7 +337,6 @@
                         )}
                     </header>
 
-                    {/* Контент */}
                     <main className="mx-auto max-w-xl px-3 py-6">
                         {activeView === 'feed' ? (
                             <div className="space-y-6">
@@ -388,7 +380,6 @@
                                 )}
                             </div>
                         ) : (
-                            /* Профиль */
                             <div className="border-4 border-black bg-white p-5 shadow-[8px_8px_0px_0px_#000]">
                                 <button onClick={() => setActiveView('feed')} className="mb-4 border-2 border-black bg-[#CCFF00] px-3 py-1 font-mono text-xs font-black uppercase shadow-[3px_3px_0px_0px_#000]">
                                     ← Назад к ленте
@@ -408,7 +399,6 @@
                         )}
                     </main>
 
-                    {/* Модалка создания поста */}
                     {isCreateModalOpen && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
                             <div className="border-4 border-black bg-white p-5 max-w-md w-full shadow-[8px_8px_0px_0px_#000]">
